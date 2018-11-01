@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Aleth</title>
+<div id="done">
+  You don't have any card to review now.
+  <a href="edit.html">Create new cards</a> or come back later.
+</div>
+<div id="main" style="display:none;">
+  <div id="question"></div>
+  <div id="back">
+    <div id="answer"></div>
+    <form action="review-card" method="post">
+      <input name="id" id="id" type="text" style="display:none;"/>
+      <input name="time" id="time" type="text" style="display:none;"/>
+      <button name="correct" type="submit">Correct</button>
+      <button type="submit">Wrong</button>
+    </form>
+  </div>
+</div>
+<a href="edit.html">New card</a>
+<script src="main.js"></script>
