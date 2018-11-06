@@ -1,4 +1,5 @@
 "use strict";
+
 let id = document.getElementById('id');
 let question = document.getElementById('question');
 let answer = document.getElementById('answer');
