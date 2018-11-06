@@ -30,93 +30,11 @@ function signIn(ok) {
   }
 }
 
-async function getFile(id) {
-  let response = await gapi.client.drive.files.get({
-    fileId: id,
-    alt: 'media',
-  });
-  return JSON.parse(response);
-}
-
-async function idByName(name) {
-  let response = await gapi.client.drive.files.list({
-    q: 'name="' + name + '"',
-    fields: 'files(id)',
-  });
-  if (response.result.files.length === 1) {
-    return response.result.files[0].id;
-  }
-  return undefined;
-}
-
-async function createFile(name, content) {
-  let response =await gapi.client.drive.files.create({
-    name: name,
-    mimeType: 'application/json',
-//    fields: 'id',
-  });
-  console.log(response);
-  return response.result.id;
-}
-
-function updateFile(id, content) {
-  return gapi.client.drive.files.update({
-    fileId: id,
-    media: {
-      mimeType: 'application/json',
-      body: content,
-    },
-    fields: '',
-  });
-}
-
-async function sync() {
-  console.log('syncing');
-  let cards_id = await idByName('cards.json');
-  console.log('cards_id = ' + cards_id);
-  let synced = {};
-  if (cards_id !== undefined) {
-    synced = await getFile(cards_id);
-  } else {
-    console.log('creating cards.json');
-    cards_id = await createFile('cards.json', '{}');
-    console.log('cards_id = ' + cards_id);
-  }
-  console.log('synchronized:', synced);
-  let merge = await (await fetch('merge-cards', {
+function sync() {
+  let auth =
+    gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse(true);
+  fetch('sync', {
     method: 'POST',
-    body: JSON.stringify(synced),
-  })).json();
-  console.log(merge);
-  let changed = false;
-  for (let id in merge.updated) {
-    changed = true;
-    if (!synced[id]) {
-      let data = (await fetch('card/' + id)).body();
-      let sync_id = await createFile(id, data);
-      merge.updated[id].sync_id = sync_id;
-    } else if (merge.updated[id].edited > synced[id].edited) {
-      
-    }
-    synced[id] = merge.updated[id];
-  }
-  for (let id of merge.toEdit) {
-    changed = true;
-    let sync_id = synced[id].sync_id || idByName(id);
-    let data = await getFile(sync_id);
-    let formData = new FormData();
-    formData.append('id', id);
-    formData.append('question', data.question);
-    formData.append('answer', data.answer);
-    formData.append('edited', synced[id].edited);
-    formData.append('sync_id', sync_id);
-    await fetch('edit-card', {
-      method: 'POST',
-      body: formData,
-    });
-  }
-  if (changed) {
-    await updateFile(cards_id, JSON.stringify(synced));
-  }
-  console.log('synchronization done');
+    body: JSON.stringify(auth),
+  });
 }

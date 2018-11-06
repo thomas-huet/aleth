@@ -45,7 +45,6 @@ async function getResponse(request) {
   if (cached) {
     return cached;
   }
-  console.log('Not in cache');
   if (request.url.match(/cards\.json$/)) {
     await update(cache, 'cards.json', {});
     return new Response('{}');
@@ -54,11 +53,10 @@ async function getResponse(request) {
   if (response.ok) {
     cache.put(request, response.clone());
   }
-  else { console.log('Request failed: ' + response.status); }
   return response;
 }
 
-async function edit(id, question, answer, time, sync_id) {
+async function edit(id, question, answer) {
   console.log('editing ' + id);
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
@@ -68,10 +66,7 @@ async function edit(id, question, answer, time, sync_id) {
     card.due = Date.now() + DELAY_MIN;
     card.delay = DELAY_MIN;
   }
-  card.edited = time;
-  if (sync_id) {
-    cards.sync_id = sync_id;
-  }
+  card.edited = Date.now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
   await update(cache, 'card/' + id, {question: question, answer: answer});
@@ -93,34 +88,6 @@ async function review(id, time, correct) {
   await update(cache, 'cards.json', cards);
 }
 
-async function merge(synced) {
-  console.log('merging');
-  let cache = await caches.open(V);
-  let cards = await get(cache, 'cards.json');
-  let updated = {};
-  for (let id in cards) {
-    if (!synced[id] ||
-        cards[id].edited > synced[id].edited ||
-        cards[id].reviewed > synced[id].reviewed) {
-      updated[id] = cards[id];
-    }
-  }
-  let to_edit = [];
-  for (let id in synced) {
-    if (!cards[id] || synced[id].edited > cards[id].edited) {
-      cards[id] = synced[id];
-      to_edit.push(id);
-    } else if (synced[id].reviewed > cards[id].reviewed) {
-      cards[id] = synced[id];
-    }
-  }
-  await update(cache, 'cards.json', cards);
-  return {
-    updated: updated,
-    toEdit: to_edit,
-  };
-}
-
 self.addEventListener('fetch', event => {
   let url = new URL(event.request.url);
   if (url.host === 'apis.google.com' ||
@@ -135,19 +102,130 @@ self.addEventListener('fetch', event => {
     event.waitUntil(event.request.formData().then(data =>
       edit(data.get('id') || Date.now(),
            data.get('question'),
-           data.get('answer'),
-           data.get('edited') || Date.now(),
-           data.get('sync_id'))
+           data.get('answer'))
     ));
   } else if(event.request.url.match(/\/review-card$/)){
     event.respondWith(Response.redirect('.'));
     event.waitUntil(event.request.formData().then(data =>
       review(data.get('id'), parseInt(data.get('time')), data.has('correct'))
     ));
-  } else if(event.request.url.match(/\/merge-cards$/)){
-    event.respondWith(
-      event.request.json()
-        .then(merge)
-        .then(value => new Response(JSON.stringify(value))));
+  } else if(event.request.url.match(/\/sync$/)){
+    event.respondWith(new Response());
+    event.waitUntil(event.request.json().then(synchronize));
   }
 });
+
+// ----- Synchronization -----
+
+async function createFile(auth, name, content) {
+  let metadata = new Blob([JSON.stringify({
+    name: name,
+    mimeType: 'application/json',
+  })], { type: 'application/json' });
+  let file = new Blob([JSON.stringify(content)], { type: 'application/json' });
+  let form = new FormData();
+  form.append('metadata', metadata);
+  form.append('file', file);
+  let response = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?' +
+    'uploadType=multipart&' +
+    'fields=id',
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+      body: form,
+    });
+  let id = (await response.json()).id;
+  return id;
+}
+
+async function idByName(auth, name) {
+  let response = await fetch(
+    'https://www.googleapis.com/drive/v3/files?' +
+    'q=name%3D%22' + name + '%22&' +
+    'fields=files(id)',
+    {
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+    });
+  let o = await response.json();
+  let files = o.files;
+  if (files.length === 1) {
+    return files[0].id;
+  }
+  return undefined;
+}
+
+async function getFile(auth, id) {
+  let response = await fetch(
+    'https://www.googleapis.com/drive/v3/files/' +
+    id +
+    '?alt=media',
+    {
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+    });
+  return response.json();
+}
+
+async function updateFile(auth, id, content) {
+  let response = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files/' +
+    id +
+    '?uploadType=media&' +
+    'fields=id',
+    {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+      body: JSON.stringify(content),
+    });
+  return response.json();
+}
+
+async function synchronize(auth) {
+  console.log('synchronizing');
+  let cards_id = await idByName(auth, 'cards.json');
+  let synced = {};
+  if (cards_id !== undefined) {
+    synced = await getFile(auth, cards_id);
+  } else {
+    cards_id = await createFile(auth, 'cards.json', {});
+  }
+  let cache = await caches.open(V);
+  let cards = await get(cache, 'cards.json');
+  let changed = false;
+  for (let id in cards) {
+    if (!synced[id]) {
+      changed = true;
+      let data = await get(cache, 'card/' + id);
+      let sync_id = await createFile(auth, id, data);
+      cards[id].sync_id = sync_id;
+      synced[id] = cards[id];
+    } else if (cards[id].edited > synced[id].edited) {
+      changed = true;
+      let data = await get(cache, 'card/' + id);
+      let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
+      await updateFile(auth, sync_id, data);
+      cards[id].sync_id = sync_id;
+      synced[id] = cards[id];
+    } else if (cards[id].reviewed > synced[id].reviewed) {
+      changed = true;
+      synced[id] = cards[id];
+    }
+  }
+  for (let id in synced) {
+    if (!cards[id] || synced[id].edited > cards[id].edited) {
+      changed = true;
+      let sync_id = synced[id].sync_id || await idByName(auth, 'card/' + id);
+      let data = await getFile(auth, sync_id);
+      await update(cache, 'card/' + id, data);
+      cards[id] = synced[id];
+    } else if (synced[id].reviewed > cards[id].reviewed) {
+      changed = true;
+      cards[id] = synced[id];
+    }
+  }
+  if (changed) {
+    await updateFile(auth, cards_id, synced);
+    await update(cache, 'cards.json', synced);
+  }
+  console.log('synchronization done');
+}
