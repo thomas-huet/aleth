@@ -9,6 +9,7 @@ const BASE_FILES = [
   'main.js',
   'edit.html',
   'edit.js',
+  'style.css',
   'sync.js',
 ];
 

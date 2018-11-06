@@ -33,8 +33,14 @@ async function nextCard() {
   let card = await (await fetch('card/' + id)).json();
   document.getElementById('question').innerHTML = card.question;
   document.getElementById('answer').innerHTML = card.answer;
+  let back = document.getElementById('back');
+  back.style.visibility = 'hidden';
+  let main = document.getElementById('main');
+  main.onclick = () => {
+    back.style.visibility = 'visible';
+  };
   document.getElementById('id').value = id;
   document.getElementById('time').value = now;
   document.getElementById('done').style.display = 'none';
-  document.getElementById('main').style.display = 'block';
+  main.style.display = 'block';
 }

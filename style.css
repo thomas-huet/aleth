@@ -1,0 +1,22 @@
+body {
+  background-color: #8dbefe;
+}
+
+#main, #done {
+  background-color: white;
+  margin: 1em;
+  border-radius: 1em;
+  padding: 2em;
+}
+#main {
+  padding-bottom: 0;
+}
+
+#question, #answer {
+  border-color: #e0e0e0;
+  border-style: dashed;
+  border-radius: 1em;
+  padding: 1em;
+  width: calc(100% - 2em);
+  margin-bottom: 2em;
+}
