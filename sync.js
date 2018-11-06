@@ -9,7 +9,7 @@ if (window.gapi) {
       clientId: GAPI_CLIENT_ID,
       apiKey: GAPI_KEY,
       discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-      scope: 'https://www.googleapis.com/auth/drive.file',
+      scope: 'https://www.googleapis.com/auth/drive.appdata',
     }).then(() => {
       console.log('Google client ready');
       let button = document.getElementById('sync_drive');

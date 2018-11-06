@@ -121,6 +121,7 @@ async function createFile(auth, name, content) {
   let metadata = new Blob([JSON.stringify({
     name: name,
     mimeType: 'application/json',
+    parents: ['appDataFolder'],
   })], { type: 'application/json' });
   let file = new Blob([JSON.stringify(content)], { type: 'application/json' });
   let form = new FormData();
@@ -142,6 +143,7 @@ async function createFile(auth, name, content) {
 async function idByName(auth, name) {
   let response = await fetch(
     'https://www.googleapis.com/drive/v3/files?' +
+    'spaces=appDataFolder&' +
     'q=name%3D%22' + name + '%22&' +
     'fields=files(id)',
     {
