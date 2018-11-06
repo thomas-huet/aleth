@@ -26,7 +26,17 @@ if (window.gapi) {
 function signIn(ok) {
   if (ok) {
     console.log('Signed in');
-    sync();
+    if (navigator.serviceWorker.controller) {
+      sync();
+    } else {
+      navigator.serviceWorker.oncontrollerchange = function() {
+        this.controller.onstatechange = function() {
+          if (this.state === 'activated') {
+            sync();
+          }
+        };
+      };
+    }
   }
 }
 

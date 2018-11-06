@@ -226,6 +226,8 @@ async function synchronize(auth) {
   if (changed) {
     await updateFile(auth, cards_id, synced);
     await update(cache, 'cards.json', synced);
+    let channel = new BroadcastChannel('sync');
+    channel.postMessage('change');
   }
   console.log('synchronization done');
 }

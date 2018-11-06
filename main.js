@@ -25,6 +25,8 @@ async function nextCard() {
     }
   }
   if (due.length === 0) {
+    let channel = new BroadcastChannel('sync');
+    channel.onmessage = nextCard;
     return;
   }
   let id = due[Math.floor(Math.random() * due.length)];
