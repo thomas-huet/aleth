@@ -11,15 +11,21 @@ if (window.gapi) {
       scope: 'https://www.googleapis.com/auth/drive.appdata',
     }).then(() => {
       console.log('Google client ready');
+      if (location.search === '?logout') {
+        gapi.auth2.getAuthInstance().signOut();
+        console.log('Signed out');
+        location.search = '';
+        return;
+      }
       gapi.auth2.getAuthInstance().isSignedIn.listen(signIn);
       if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
         signIn(true);
       } else {
-	let button = document.getElementById('sync-drive');
-	button.style.display = 'inline-block';
-	button.onclick = () => {
-	  gapi.auth2.getAuthInstance().signIn();
-	}
+        let button = document.getElementById('sync-drive');
+        button.style.display = 'inline-block';
+        button.onclick = () => {
+          gapi.auth2.getAuthInstance().signIn();
+        }
       }
     });
   });
@@ -45,6 +51,8 @@ function signIn(ok) {
 function sync() {
   let auth =
     gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse(true);
+  let button = document.getElementById('sync-drive');
+  button.style.display = 'none';
   fetch('sync', {
     method: 'POST',
     body: JSON.stringify(auth),

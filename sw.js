@@ -75,6 +75,7 @@ async function edit(id, question, answer) {
   cards[id] = card;
   await update(cache, 'cards.json', cards);
   await update(cache, 'card/' + id, {question: question, answer: answer});
+  return Response.redirect('.');
 }
 
 async function review(id, time, correct) {
@@ -94,12 +95,14 @@ async function review(id, time, correct) {
   card.reviewed = Date.now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
+  return Response.redirect('.');
 }
 
 async function reset() {
   console.log('resetting cache');
   await caches.delete(V);
   await init();
+  return Response.redirect('.?logout');
 }
 
 self.addEventListener('fetch', event => {
@@ -110,26 +113,22 @@ self.addEventListener('fetch', event => {
     return;
   }
   if(event.request.url.match(/\/reset$/)){
-    event.respondWith(Response.redirect('.'));
-    event.waitUntil(reset());
+    event.respondWith(reset());
   } else if (event.request.method === 'GET') {
     console.log('GET ' + event.request.url);
     event.respondWith(getResponse(event.request));
   } else if (event.request.url.match(/\/edit-card$/)) {
-    event.respondWith(Response.redirect('.'));
-    event.waitUntil(event.request.formData().then(data =>
+    event.respondWith(event.request.formData().then(data =>
       edit(data.get('id') || Date.now(),
            data.get('question'),
            data.get('answer'))
     ));
   } else if(event.request.url.match(/\/review-card$/)){
-    event.respondWith(Response.redirect('.'));
-    event.waitUntil(event.request.formData().then(data =>
+    event.respondWith(event.request.formData().then(data =>
       review(data.get('id'), parseInt(data.get('time')), data.has('correct'))
     ));
   } else if(event.request.url.match(/\/sync$/)){
-    event.respondWith(new Response());
-    event.waitUntil(event.request.json().then(synchronize));
+    event.respondWith(event.request.json().then(synchronize));
   }
 });
 
@@ -255,4 +254,5 @@ async function synchronize(auth) {
     console.log('no change');
   }
   console.log('synchronization done');
+  return new Response();
 }
