@@ -1,6 +1,6 @@
 "use strict";
 
-const GAPI_CLIENT_ID = '1034988601138-ma48mfbn3jj0afi2lcubso9gtqf452ft.apps.googleusercontent.com';
+const GAPI_CLIENT_ID = '1034988601138-0ja8094uqukkjhubodnbd2rl0e80o7lr.apps.googleusercontent.com';
 const GAPI_KEY = 'AIzaSyAcfcHpd-Esk-ERLgfdXrNEYF6Lm_iMBtQ'
 
 if (window.gapi) {
