@@ -91,7 +91,7 @@ async function review(id, time, correct) {
   } else {
     card.delay = Math.max(card.delay / K, DELAY_MIN);
   }
-  card.due = time + card.delay;
+  card.due = Date.now() + card.delay;
   card.reviewed = Date.now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);

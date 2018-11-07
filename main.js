@@ -37,10 +37,10 @@ async function nextCard() {
   back.style.visibility = 'hidden';
   let main = document.getElementById('main');
   main.onclick = () => {
+    document.getElementById('time').value = Date.now();
     back.style.visibility = 'visible';
   };
   document.getElementById('id').value = id;
-  document.getElementById('time').value = now;
   document.getElementById('placeholder').style.display = 'none';
   main.style.display = 'block';
   let edit = document.getElementById('edit');
