@@ -19,6 +19,10 @@ body {
   margin-bottom: 2em;
 }
 
+textarea {
+  height: 10em;
+}
+
 form, #menu {
   text-align: center;
 }
