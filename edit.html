@@ -6,7 +6,8 @@
 <title>Aleth</title>
 <form id="main" action="edit-card" method="post">
   <input name="id" id="id" type="text" style="display:none;"/>
-  <textarea name="question" id="question"></textarea>
-  <textarea name="answer" id="answer"></textarea>
-  <button type="submit">Done</button>
+  <textarea name="question" id="question" placeholder="question"></textarea>
+  <textarea name="answer" id="answer" placeholder="answer"></textarea>
+  <button id="done" type="submit">Done</button>
+  <button id="cancel" onclick="location.href='.'">Cancel</button>
 </form>

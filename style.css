@@ -1,15 +1,13 @@
 body {
   background-color: #8dbefe;
+  padding: 1em;
 }
 
-#main, #done {
+#main, #placeholder {
   background-color: white;
-  margin: 1em;
   border-radius: 1em;
   padding: 2em;
-}
-#main {
-  padding-bottom: 0;
+  margin-bottom: 1em;
 }
 
 #question, #answer {
@@ -19,4 +17,37 @@ body {
   padding: 1em;
   width: calc(100% - 2em);
   margin-bottom: 2em;
+}
+
+form, #menu {
+  text-align: center;
+}
+
+button {
+  width: calc(50% - 1em);
+  border: 0;
+  border-radius: 1em;
+  padding: 1em;
+}
+
+#correct {
+  background-color: #dcffdc;
+}
+
+#wrong {
+  background-color: #ffdcdc;
+}
+
+#new, #edit, #done, #cancel, #sync-drive {
+  background-color: #dbdbdb;
+}
+
+#menu {
+  position: sticky;
+  bottom: 1em;
+}
+
+#sync-drive {
+  width: 100%;
+  margin-bottom: 1em;
 }

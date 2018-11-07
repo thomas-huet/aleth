@@ -152,8 +152,8 @@ async function idByName(auth, name) {
     });
   let o = await response.json();
   let files = o.files;
-  if (files.length === 1) {
-    return files[0].id;
+  if (files.length >= 1) {
+    return files[files.length - 1].id;
   }
   return undefined;
 }
@@ -189,6 +189,7 @@ async function synchronize(auth) {
   let synced = {};
   if (cards_id !== undefined) {
     synced = await getFile(auth, cards_id);
+    console.log('synced = ', synced);
   } else {
     cards_id = await createFile(auth, 'cards.json', {});
   }

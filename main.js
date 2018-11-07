@@ -41,6 +41,14 @@ async function nextCard() {
   };
   document.getElementById('id').value = id;
   document.getElementById('time').value = now;
-  document.getElementById('done').style.display = 'none';
+  document.getElementById('placeholder').style.display = 'none';
   main.style.display = 'block';
+  let edit = document.getElementById('edit');
+  edit.onclick = () => {
+    location.href =
+      'edit.html?id=' + id +
+      '&question=' + encodeURIComponent(card.question) +
+      '&answer=' + encodeURIComponent(card.answer);
+  };
+  edit.style.visibility = 'visible';
 }

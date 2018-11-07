@@ -6,7 +6,8 @@
 <script defer src="https://apis.google.com/js/api.js"></script>
 <script defer src="sync.js"></script>
 <title>Aleth</title>
-<div id="done">
+<button id="sync-drive" style="display:none;">Synchronize with Google Drive</button>
+<div id="placeholder">
   There is no card to review now.
 </div>
 <div id="main" style="display:none;">
@@ -16,10 +17,12 @@
     <form action="review-card" method="post">
       <input name="id" id="id" type="text" style="display:none;"/>
       <input name="time" id="time" type="text" style="display:none;"/>
-      <button name="correct" type="submit">Correct</button>
-      <button type="submit">Wrong</button>
+      <button id="correct" name="correct" type="submit">Correct</button>
+      <button id="wrong" type="submit">Wrong</button>
     </form>
   </div>
 </div>
-<a href="edit.html">New card</a>
-<button id="sync_drive" style="display:none;">Sync with Google Drive</button>
+<div id="menu">
+  <button id="new" onclick="location.href='edit.html'">Create new card</button>
+  <button id="edit" style="visibility:hidden;">Edit card</button>
+</div>

@@ -12,13 +12,16 @@ if (window.gapi) {
       scope: 'https://www.googleapis.com/auth/drive.appdata',
     }).then(() => {
       console.log('Google client ready');
-      let button = document.getElementById('sync_drive');
-      button.style.display = 'inline-block';
-      button.onclick = () => {
-        gapi.auth2.getAuthInstance().signIn();
-      }
       gapi.auth2.getAuthInstance().isSignedIn.listen(signIn);
-      signIn(gapi.auth2.getAuthInstance().isSignedIn.get());
+      if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+        signIn(true);
+      } else {
+	let button = document.getElementById('sync-drive');
+	button.style.display = 'inline-block';
+	button.onclick = () => {
+	  gapi.auth2.getAuthInstance().signIn();
+	}
+      }
     });
   });
 }
