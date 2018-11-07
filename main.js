@@ -52,3 +52,8 @@ async function nextCard() {
   };
   edit.style.visibility = 'visible';
 }
+
+// reload page every hour
+setTimeout(() => {
+  window.location.reload();
+}, 60 * 60 * 1000);
