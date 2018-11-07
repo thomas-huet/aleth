@@ -85,7 +85,7 @@ async function review(id, time, correct) {
   let card = cards[id];
   if (correct) {
     if (time < card.due) {
-      return;
+      return Response.redirect('.');
     }
     card.delay = K * (card.delay + (time - card.due));
   } else {
