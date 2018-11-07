@@ -93,13 +93,23 @@ async function review(id, time, correct) {
   await update(cache, 'cards.json', cards);
 }
 
+async function reset() {
+  console.log('resetting cache');
+  await caches.delete(V);
+  await init();
+}
+
 self.addEventListener('fetch', event => {
   let url = new URL(event.request.url);
   if (url.host === 'apis.google.com' ||
       url.host === 'csi.gstatic.com') {
+    console.log(url.host);
     return;
   }
-  if (event.request.method === 'GET') {
+  if(event.request.url.match(/\/reset$/)){
+    event.respondWith(Response.redirect('.'));
+    event.waitUntil(reset());
+  } else if (event.request.method === 'GET') {
     console.log('GET ' + event.request.url);
     event.respondWith(getResponse(event.request));
   } else if (event.request.url.match(/\/edit-card$/)) {
