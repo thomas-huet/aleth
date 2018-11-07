@@ -1,5 +1,6 @@
 "use strict";
 
+// works for localhost:8000 and thomas-huet.github.io
 const GAPI_CLIENT_ID = '1034988601138-0ja8094uqukkjhubodnbd2rl0e80o7lr.apps.googleusercontent.com';
 const GAPI_KEY = 'AIzaSyAcfcHpd-Esk-ERLgfdXrNEYF6Lm_iMBtQ'
 
