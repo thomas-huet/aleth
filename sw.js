@@ -68,6 +68,7 @@ async function edit(id, question, answer) {
     card.delay = DELAY_MIN;
   }
   card.edited = Date.now();
+  card.reviewed = Date.now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
   await update(cache, 'card/' + id, {question: question, answer: answer});
@@ -189,12 +190,13 @@ async function synchronize(auth) {
   let synced = {};
   if (cards_id !== undefined) {
     synced = await getFile(auth, cards_id);
-    console.log('synced = ', synced);
   } else {
     cards_id = await createFile(auth, 'cards.json', {});
   }
+  console.log('synced = ', synced);
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
+  console.log('cards = ', cards);
   let changed = false;
   for (let id in cards) {
     if (!synced[id]) {
@@ -228,10 +230,13 @@ async function synchronize(auth) {
     }
   }
   if (changed) {
+    console.log('change');
     await updateFile(auth, cards_id, synced);
     await update(cache, 'cards.json', synced);
     let channel = new BroadcastChannel('sync');
     channel.postMessage('change');
+  } else {
+    console.log('no change');
   }
   console.log('synchronization done');
 }
