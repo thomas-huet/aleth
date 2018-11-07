@@ -41,18 +41,21 @@ self.addEventListener('activate', event => {
 });
 
 async function getResponse(request) {
+  let url = new URL(request.url);
+  url.search = '';
   let cache = await caches.open(V);
-  let cached = await cache.match(request);
+  let cached = await cache.match(url.href);
   if (cached) {
     return cached;
   }
-  if (request.url.match(/cards\.json$/)) {
+  if (url.href.match(/cards\.json$/)) {
     await update(cache, 'cards.json', {});
     return new Response('{}');
   }
-  let response = await fetch(request);
+  console.log(url.href + ' not in cache');
+  let response = await fetch(url.href);
   if (response.ok) {
-    cache.put(request, response.clone());
+    cache.put(url.href, response.clone());
   }
   return response;
 }
