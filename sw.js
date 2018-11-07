@@ -83,6 +83,9 @@ async function review(id, time, correct) {
   let cards = await get(cache, 'cards.json');
   let card = cards[id];
   if (correct) {
+    if (time < card.due) {
+      return;
+    }
     card.delay = K * (card.delay + (time - card.due));
   } else {
     card.delay = Math.max(card.delay / K, DELAY_MIN);
