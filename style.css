@@ -58,7 +58,7 @@ button {
 
 /* CSS for the content of the cards */
 
-pre code {
+pre {
   border-style: solid;
   border-width: 1px;
   border-radius: 1em;
