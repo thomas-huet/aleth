@@ -84,14 +84,15 @@ async function review(id, time, correct) {
   let cards = await get(cache, 'cards.json');
   let card = cards[id];
   if (correct) {
-    if (time < card.due) {
+    if (time < card.due) { // ignore early reviews
       return Response.redirect('.');
     }
     card.delay = K * (card.delay + (time - card.due));
+    card.due = Date.now() + card.delay;
   } else {
     card.delay = Math.max(card.delay / K, DELAY_MIN);
+    card.due = Date.now() + DELAY_MIN;
   }
-  card.due = Date.now() + card.delay;
   card.reviewed = Date.now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
