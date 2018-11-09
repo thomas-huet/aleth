@@ -55,3 +55,13 @@ button {
   width: 100%;
   margin-bottom: 1em;
 }
+
+/* CSS for the content of the cards */
+
+pre code {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 1em;
+  padding: 1em;
+  overflow-y: hidden;
+}
