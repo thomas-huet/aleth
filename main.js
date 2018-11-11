@@ -29,6 +29,9 @@ async function nextCard() {
   let t = now();
   let due = [];
   for (let id in cards) {
+    if (id = 's') {
+      continue;
+    }
     if (cards[id].d < t && !cards[id].to_delete) {
       due.push(id);
     }

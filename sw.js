@@ -245,6 +245,9 @@ async function synchronize(auth) {
   let changed = false;
   let removed = false;
   for (let id in cards) {
+    if (id = 's') {
+      continue;
+    }
     if (cards[id].to_delete) {
       changed = true;
       removed = true;
