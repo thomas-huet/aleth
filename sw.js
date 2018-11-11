@@ -18,10 +18,6 @@ const BASE_FILES = [
   'sync.js',
 ];
 
-async function mem(cache, key) {
-  return ((await cache.match(key)) !== undefined);
-}
-
 async function get(cache, key) {
   return (await cache.match(key)).json();
 }
@@ -37,6 +33,12 @@ self.addEventListener('install', event => {
 
 async function init() {
   let cache = await caches.open(V);
+  if (!await cache.match('cards.json')) {
+    console.log('creating new cards.json');
+    await update(cache, 'cards.json', {s: 0});
+  } else  {
+    console.log('keeping old cards.json');
+  }
   await cache.addAll(BASE_FILES);
 }
 
@@ -46,21 +48,18 @@ self.addEventListener('activate', event => {
 });
 
 async function getResponse(request) {
-  let url = new URL(request.url);
-  url.search = '';
   let cache = await caches.open(V);
-  let cached = await cache.match(url.href);
+  if (request.url.match(/\/edit.html/)) {
+    return cache.match(request, {ignoreSearch: true});
+  }
+  let cached = await cache.match(request);
   if (cached) {
     return cached;
   }
-  if (url.href.match(/cards\.json$/)) {
-    await update(cache, 'cards.json', {s: 0});
-    return new Response('{"s":0}');
-  }
-  console.log(url.href + ' not in cache');
-  let response = await fetch(url.href);
+  console.log(request.url + ' not in cache');
+  let response = await fetch(request.url);
   if (response.ok) {
-    cache.put(url.href, response.clone());
+    cache.put(request.url, response.clone());
   }
   return response;
 }
