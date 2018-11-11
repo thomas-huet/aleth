@@ -60,6 +60,7 @@ async function nextCard() {
       '&answer=' + encodeURIComponent(card.a);
   };
   edit.style.visibility = 'visible';
+  MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
 }
 
 // reload page every hour
