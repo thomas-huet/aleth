@@ -20,8 +20,18 @@ body {
   overflow: auto;
 }
 
-#question > *, #question-preview > *, #answer > *, #answer-preview > * {
+#question > *:first-child,
+#question-preview > *:first-child,
+#answer > *:first-child,
+#answer-preview > *:first-child {
   margin-top: 0;
+}
+
+#question > *:last-child,
+#question-preview > *:last-child,
+#answer > *:last-child,
+#answer-preview > *:last-child {
+  margin-bottom: 0;
 }
 
 textarea, #question-preview, #answer-preview {
