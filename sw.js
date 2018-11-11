@@ -1,9 +1,9 @@
 "use strict";
 
 const V = '1'; // cache version
-const DELAY_MIN = 60 * 1000; // one minute
+const DELAY_MIN = 60; // one minute
 const K = 2;
-const DURATION_TO_CACHE = 7 * 24 * 60 * 60 * 1000 // one week
+const DURATION_TO_CACHE = 7 * 24 * 60 * 60; // one week
 
 function now() {
   return Math.floor(Date.now() / 1000);
@@ -70,13 +70,14 @@ async function edit(id, question, answer) {
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
   let card = cards[id];
+  let t = now();
   if (!card) {
     card = {};
-    card.d = now() + DELAY_MIN;
+    card.d = t + DELAY_MIN;
     card.i = DELAY_MIN;
   }
-  card.e = now();
-  card.r = now();
+  card.e = t;
+  card.r = t;
   cards[id] = card;
   await update(cache, 'cards.json', cards);
   await update(cache, 'card/' + id, {q: question, a: answer});
