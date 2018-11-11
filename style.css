@@ -10,28 +10,61 @@ body {
   margin-bottom: 1em;
 }
 
-#question, #answer {
+#question, #question-preview, #answer, #answer-preview {
   border-color: #e0e0e0;
   border-style: dashed;
   border-radius: 1em;
   padding: 1em;
   width: calc(100% - 2em);
   margin-bottom: 2em;
+  overflow: auto;
 }
 
-textarea {
+#question > *, #question-preview > *, #answer > *, #answer-preview > * {
+  margin-top: 0;
+}
+
+textarea, #question-preview, #answer-preview {
   height: 10em;
 }
 
-form, #menu {
+#menu, .bar {
   text-align: center;
 }
 
 button {
   width: calc(50% - 1em);
-  border: 0;
+  border-style: none;
   border-radius: 1em;
   padding: 1em;
+}
+
+#edit-question, #preview-question, #edit-answer, #preview-answer {
+  width: 7em;
+  background-color: white;
+  border-color: #e0e0e0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#edit-question.current,
+#preview-question.current,
+#edit-answer.current,
+#preview-answer.current {
+  background-color: #f8f8f8;
+  border-style: solid;
+  border-bottom-style: none;
+}
+
+#edit-question:hover,
+#preview-question:hover,
+#edit-answer:hover,
+#preview-answer:hover {
+  background-color: #f8f8f8;
+}
+
+textarea#question, #question-preview, textarea#answer, #answer-preview {
+  border-top-left-radius: 0;
 }
 
 #correct {
@@ -63,5 +96,5 @@ pre {
   border-width: 1px;
   border-radius: 1em;
   padding: 1em;
-  overflow-y: hidden;
+  overflow: auto;
 }

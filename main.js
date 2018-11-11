@@ -1,5 +1,10 @@
 "use strict";
 
+marked.setOptions({
+  breaks: true,
+  headerIds: false,
+});
+
 if (navigator.serviceWorker.controller) {
   nextCard();
 } else {
@@ -31,8 +36,8 @@ async function nextCard() {
   }
   let id = due[Math.floor(Math.random() * due.length)];
   let card = await (await fetch('card/' + id)).json();
-  document.getElementById('question').innerHTML = card.question;
-  document.getElementById('answer').innerHTML = card.answer;
+  document.getElementById('question').innerHTML = marked(card.question);
+  document.getElementById('answer').innerHTML = marked(card.answer);
   let back = document.getElementById('back');
   back.style.visibility = 'hidden';
   let main = document.getElementById('main');
