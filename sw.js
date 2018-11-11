@@ -1,8 +1,13 @@
 "use strict";
 
 const V = '1'; // cache version
-const DELAY_MIN = 60*1000; // one minute
+const DELAY_MIN = 60 * 1000; // one minute
 const K = 2;
+const BUCKET_SIZE = 7 * 24 * 60 * 60 * 1000 // one week
+
+let now() {
+  return Math.floor(Date.now() / 1000);
+}
 
 const BASE_FILES = [
   '.',
@@ -67,14 +72,14 @@ async function edit(id, question, answer) {
   let card = cards[id];
   if (!card) {
     card = {};
-    card.due = Date.now() + DELAY_MIN;
-    card.delay = DELAY_MIN;
+    card.d = now() + DELAY_MIN;
+    card.i = DELAY_MIN;
   }
-  card.edited = Date.now();
-  card.reviewed = Date.now();
+  card.e = now();
+  card.r = now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
-  await update(cache, 'card/' + id, {question: question, answer: answer});
+  await update(cache, 'card/' + id, {q: question, a: answer});
   return Response.redirect('.');
 }
 
@@ -84,16 +89,16 @@ async function review(id, time, correct) {
   let cards = await get(cache, 'cards.json');
   let card = cards[id];
   if (correct) {
-    if (time < card.due) { // ignore early reviews
+    if (time < card.d) { // ignore early reviews
       return Response.redirect('.');
     }
-    card.delay = K * (card.delay + (time - card.due));
-    card.due = Date.now() + card.delay;
+    card.i = K * (card.i + (time - card.d));
+    card.d = now() + card.i;
   } else {
-    card.delay = Math.max(card.delay / K, DELAY_MIN);
-    card.due = Date.now() + DELAY_MIN;
+    card.i = Math.max(Math.floor(card.i) / K, DELAY_MIN);
+    card.d = now() + DELAY_MIN;
   }
-  card.reviewed = Date.now();
+  card.r = now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
   return Response.redirect('.');
@@ -120,7 +125,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(getResponse(event.request));
   } else if (event.request.url.match(/\/edit-card$/)) {
     event.respondWith(event.request.formData().then(data =>
-      edit(data.get('id') || Date.now(),
+      edit(data.get('id') || now(),
            data.get('question'),
            data.get('answer'))
     ));
@@ -221,26 +226,26 @@ async function synchronize(auth) {
       let sync_id = await createFile(auth, id, data);
       cards[id].sync_id = sync_id;
       synced[id] = cards[id];
-    } else if (cards[id].edited > synced[id].edited) {
+    } else if (cards[id].e > synced[id].e) {
       changed = true;
       let data = await get(cache, 'card/' + id);
       let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
       await updateFile(auth, sync_id, data);
       cards[id].sync_id = sync_id;
       synced[id] = cards[id];
-    } else if (cards[id].reviewed > synced[id].reviewed) {
+    } else if (cards[id].r > synced[id].r) {
       changed = true;
       synced[id] = cards[id];
     }
   }
   for (let id in synced) {
-    if (!cards[id] || synced[id].edited > cards[id].edited) {
+    if (!cards[id] || synced[id].e > cards[id].e) {
       changed = true;
       let sync_id = synced[id].sync_id || await idByName(auth, 'card/' + id);
       let data = await getFile(auth, sync_id);
       await update(cache, 'card/' + id, data);
       cards[id] = synced[id];
-    } else if (synced[id].reviewed > cards[id].reviewed) {
+    } else if (synced[id].r > cards[id].r) {
       changed = true;
       cards[id] = synced[id];
     }

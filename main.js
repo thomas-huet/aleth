@@ -18,14 +18,18 @@ if (navigator.serviceWorker.controller) {
   navigator.serviceWorker.register('sw.js');
 }
 
+let now() {
+  return Math.floor(Date.now() / 1000);
+}
+
 async function nextCard() {
   console.log('preparing card');
   let cards = await (await fetch('cards.json')).json();
   console.log(cards);
-  let now = Date.now();
+  let t = now();
   let due = [];
   for (let id in cards) {
-    if (cards[id].due < now) {
+    if (cards[id].d < t) {
       due.push(id);
     }
   }
@@ -36,13 +40,13 @@ async function nextCard() {
   }
   let id = due[Math.floor(Math.random() * due.length)];
   let card = await (await fetch('card/' + id)).json();
-  document.getElementById('question').innerHTML = marked(card.question);
-  document.getElementById('answer').innerHTML = marked(card.answer);
+  document.getElementById('question').innerHTML = marked(card.q);
+  document.getElementById('answer').innerHTML = marked(card.a);
   let back = document.getElementById('back');
   back.style.visibility = 'hidden';
   let main = document.getElementById('main');
   main.onclick = () => {
-    document.getElementById('time').value = Date.now();
+    document.getElementById('time').value = now();
     back.style.visibility = 'visible';
   };
   document.getElementById('id').value = id;
@@ -52,8 +56,8 @@ async function nextCard() {
   edit.onclick = () => {
     location.href =
       'edit.html?id=' + id +
-      '&question=' + encodeURIComponent(card.question) +
-      '&answer=' + encodeURIComponent(card.answer);
+      '&question=' + encodeURIComponent(card.q) +
+      '&answer=' + encodeURIComponent(card.a);
   };
   edit.style.visibility = 'visible';
 }
