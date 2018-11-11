@@ -54,8 +54,8 @@ async function getResponse(request) {
     return cached;
   }
   if (url.href.match(/cards\.json$/)) {
-    await update(cache, 'cards.json', {});
-    return new Response('{}');
+    await update(cache, 'cards.json', {s: 0});
+    return new Response('{"s":0}');
   }
   console.log(url.href + ' not in cache');
   let response = await fetch(url.href);
@@ -72,9 +72,10 @@ async function edit(id, question, answer) {
   let card = cards[id];
   let t = now();
   if (!card) {
-    card = {};
-    card.d = t + DELAY_MIN;
-    card.i = DELAY_MIN;
+    card = {
+      d: t + DELAY_MIN,
+      i: DELAY_MIN,
+    };
   }
   card.e = t;
   card.r = t;
@@ -102,6 +103,17 @@ async function review(id, time, correct) {
   card.r = now();
   cards[id] = card;
   await update(cache, 'cards.json', cards);
+  return Response.redirect('.');
+}
+
+async function deleteCard(id) {
+  console.log('deleting ' + id);
+  let cache = await caches.open(V);
+  let cards = await get(cache, 'cards.json');
+  let card = cards[id];
+  card.to_delete = true;
+  await update(cache, 'cards.json', cards);
+  await cache.delete('card/' + id);
   return Response.redirect('.');
 }
 
@@ -164,6 +176,17 @@ async function createFile(auth, name, content) {
   return id;
 }
 
+async function deleteFile(auth, id) {
+  let response = await fetch(
+    'https://www.googleapis.com/drive/v3/files/' +
+    id,
+    {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+    });
+  return;
+}
+
 async function idByName(auth, name) {
   let response = await fetch(
     'https://www.googleapis.com/drive/v3/files?' +
@@ -222,7 +245,22 @@ async function synchronize(auth) {
   let changed = false;
   let removed = false;
   for (let id in cards) {
+    if (cards[id].to_delete) {
+      changed = true;
+      removed = true;
+      delete synced[id];
+      let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
+      await deleteFile(auth, sync_id);
+      delete cards[id];
+      continue;
+    }
     if (!synced[id]) {
+      if (cards.s >= id) {
+        delete cards[id];
+        await cache.delete('card/' + id);
+        removed = true;
+        continue;
+      }
       changed = true;
       let data = await get(cache, 'card/' + id);
       let sync_id = await createFile(auth, id, data);
@@ -246,6 +284,7 @@ async function synchronize(auth) {
     }
   }
   if (changed) {
+    cards.s = now();
     await updateFile(auth, cards_id, synced);
   }
   if (removed) {
