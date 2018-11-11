@@ -18,7 +18,7 @@ if (navigator.serviceWorker.controller) {
   navigator.serviceWorker.register('sw.js');
 }
 
-let now() {
+function now() {
   return Math.floor(Date.now() / 1000);
 }
 

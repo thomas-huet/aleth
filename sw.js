@@ -3,9 +3,9 @@
 const V = '1'; // cache version
 const DELAY_MIN = 60 * 1000; // one minute
 const K = 2;
-const BUCKET_SIZE = 7 * 24 * 60 * 60 * 1000 // one week
+const DURATION_TO_CACHE = 7 * 24 * 60 * 60 * 1000 // one week
 
-let now() {
+function now() {
   return Math.floor(Date.now() / 1000);
 }
 
@@ -219,6 +219,7 @@ async function synchronize(auth) {
   let cards = await get(cache, 'cards.json');
   console.log('cards = ', cards);
   let changed = false;
+  let removed = false;
   for (let id in cards) {
     if (!synced[id]) {
       changed = true;
@@ -237,27 +238,37 @@ async function synchronize(auth) {
       changed = true;
       synced[id] = cards[id];
     }
-  }
-  for (let id in synced) {
-    if (!cards[id] || synced[id].e > cards[id].e) {
-      changed = true;
-      let sync_id = synced[id].sync_id || await idByName(auth, 'card/' + id);
-      let data = await getFile(auth, sync_id);
-      await update(cache, 'card/' + id, data);
-      cards[id] = synced[id];
-    } else if (synced[id].r > cards[id].r) {
-      changed = true;
-      cards[id] = synced[id];
+    if (cards[id].d > now() + DURATION_TO_CACHE) {
+      delete cards[id];
+      await cache.delete('card/' + id);
+      removed = true;
     }
   }
   if (changed) {
-    console.log('change');
     await updateFile(auth, cards_id, synced);
+  }
+  if (removed) {
+    await update(cache, 'cards.json', synced);
+  }
+  changed = false;
+  for (let id in synced) {
+    if (synced[id].d <= now() + DURATION_TO_CACHE) {
+      if (!cards[id] || synced[id].e > cards[id].e) {
+        changed = true;
+        let sync_id = synced[id].sync_id || await idByName(auth, 'card/' + id);
+        let data = await getFile(auth, sync_id);
+        await update(cache, 'card/' + id, data);
+        cards[id] = synced[id];
+      } else if (synced[id].r > cards[id].r) {
+        changed = true;
+        cards[id] = synced[id];
+      }
+    }
+  }
+  if (changed) {
     await update(cache, 'cards.json', synced);
     let channel = new BroadcastChannel('sync');
     channel.postMessage('change');
-  } else {
-    console.log('no change');
   }
   console.log('synchronization done');
   return new Response();
