@@ -1,6 +1,7 @@
 body {
   background-color: #8dbefe;
   padding: 1em;
+  font-family: sans-serif;
 }
 
 #main, #placeholder {
@@ -107,4 +108,16 @@ pre {
   border-radius: 1em;
   padding: 1em;
   overflow: auto;
+}
+
+code {
+  font-size: 1rem;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  background-color: #f0f0f0;
+}
+
+pre code {
+  padding: 0;
+  background-color: inherit;
 }
