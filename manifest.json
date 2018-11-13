@@ -41,6 +41,14 @@
     {
       "src": "img/icon-240.png",
       "sizes": "240x240"
+    },
+    {
+      "src": "img/icon-480.png",
+      "sizes": "480x480"
+    },
+    {
+      "src": "img/icon-516.png",
+      "sizes": "516x516"
     }
   ]
 }
