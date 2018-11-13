@@ -4,7 +4,7 @@
   "description": "Simple flashcards",
   "start_url": ".",
   "display": "standalone",
-  "background-color": "#8dbefe",
+  "background_color": "#8dbefe",
   "icons": [
     {
       "src": "img/icon-6.png",
