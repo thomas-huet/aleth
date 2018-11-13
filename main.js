@@ -45,9 +45,11 @@ async function showCard(card_id, old_card) {
   let channel = new BroadcastChannel('sync');
   let main = document.getElementById('main');
   let placeholder = document.getElementById('placeholder');
+  let edit = document.getElementById('edit');
   if (due.length === 0) {
     main.style.display = 'none';
     placeholder.style.display = 'block';
+    edit.style.visibility = 'hidden';
     channel.onmessage = () => {
       showCard();
     };
@@ -66,7 +68,6 @@ async function showCard(card_id, old_card) {
   document.getElementById('id').value = id;
   placeholder.style.display = 'none';
   main.style.display = 'block';
-  let edit = document.getElementById('edit');
   edit.onclick = () => {
     location.href =
       'edit.html?id=' + id +
