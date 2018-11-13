@@ -6,12 +6,12 @@ marked.setOptions({
 });
 
 if (navigator.serviceWorker.controller) {
-  nextCard();
+  showCard();
 } else {
   navigator.serviceWorker.oncontrollerchange = function() {
     this.controller.onstatechange = function() {
       if (this.state === 'activated') {
-        nextCard();
+        showCard();
       }
     };
   };
@@ -22,11 +22,17 @@ function now() {
   return Math.floor(Date.now() / 1000);
 }
 
-async function nextCard() {
+async function showCard(card_id, old_card) {
   console.log('preparing card');
   let cards = await (await fetch('cards.json')).json();
   console.log(cards);
   let t = now();
+  if (card_id &&
+      cards[card_id].d < t &&
+      !cards[card_id].to_delete &&
+      cards[card_id].e === old_card.e) {
+    return;
+  }
   let due = [];
   for (let id in cards) {
     if (id === 's') {
@@ -36,9 +42,15 @@ async function nextCard() {
       due.push(id);
     }
   }
+  let channel = new BroadcastChannel('sync');
+  let main = document.getElementById('main');
+  let placeholder = document.getElementById('placeholder');
   if (due.length === 0) {
-    let channel = new BroadcastChannel('sync');
-    channel.onmessage = nextCard;
+    main.style.display = 'none';
+    placeholder.style.display = 'block';
+    channel.onmessage = () => {
+      showCard();
+    };
     return;
   }
   let id = due[Math.floor(Math.random() * due.length)];
@@ -47,13 +59,12 @@ async function nextCard() {
   document.getElementById('answer').innerHTML = marked(card.a);
   let back = document.getElementById('back');
   back.style.visibility = 'hidden';
-  let main = document.getElementById('main');
   main.onclick = () => {
     document.getElementById('time').value = now();
     back.style.visibility = 'visible';
   };
   document.getElementById('id').value = id;
-  document.getElementById('placeholder').style.display = 'none';
+  placeholder.style.display = 'none';
   main.style.display = 'block';
   let edit = document.getElementById('edit');
   edit.onclick = () => {
@@ -64,6 +75,9 @@ async function nextCard() {
   };
   edit.style.visibility = 'visible';
   MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+  channel.onmessage = () => {
+    showCard(id, due[id]);
+  };
 }
 
 // reload page every hour
