@@ -1,0 +1,46 @@
+{
+  "name": "Aleth",
+  "short_name": "Aleth",
+  "description": "Simple flashcards",
+  "start_url": ".",
+  "display": "standalone",
+  "background-color": "#8dbefe",
+  "icons": [
+    {
+      "src": "img/icon-6.png",
+      "sizes": "6x6"
+    },
+    {
+      "src": "img/icon-12.png",
+      "sizes": "12x12"
+    },
+    {
+      "src": "img/icon-18.png",
+      "sizes": "18x18"
+    },
+    {
+      "src": "img/icon-24.png",
+      "sizes": "24x24"
+    },
+    {
+      "src": "img/icon-48.png",
+      "sizes": "48x48"
+    },
+    {
+      "src": "img/icon-60.png",
+      "sizes": "60x60"
+    },
+    {
+      "src": "img/icon-120.png",
+      "sizes": "120x120"
+    },
+    {
+      "src": "img/icon-180.png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "img/icon-240.png",
+      "sizes": "240x240"
+    }
+  ]
+}
