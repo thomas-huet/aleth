@@ -58,8 +58,6 @@ preview_answer.onclick = () => {
 // make sure the textarea has the same style as the preview
 window.addEventListener('load', () => {
   let style = getComputedStyle(question_preview);
-  question.style.fontSize = style.fontSize;
-  answer.style.fontSize = style.fontSize;
   let b = style.borderBottomWidth;
   question.style.borderBottomWidth = b;
   answer.style.borderBottomWidth = b;

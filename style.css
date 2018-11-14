@@ -36,7 +36,8 @@ body {
 }
 
 textarea, #question-preview, #answer-preview {
-  height: 10em;
+  font-size: 1rem;
+  height: 10rem;
 }
 
 #menu, .bar {
