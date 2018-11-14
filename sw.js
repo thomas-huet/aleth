@@ -16,6 +16,12 @@ const BASE_FILES = [
   'edit.js',
   'style.css',
   'sync.js',
+  // external dependencies
+  'https://cdnjs.cloudflare.com/ajax/libs/marked/0.5.1/marked.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_CHTML-full',
+  'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS_CHTML-full.js?V=2.7.5',
+  'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/jax/output/CommonHTML/autoload/multiline.js?V=2.7.5',
+  'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/jax/output/CommonHTML/fonts/TeX/fontdata.js?V=2.7.5',
 ];
 
 async function get(cache, key) {
@@ -49,14 +55,14 @@ self.addEventListener('activate', event => {
 
 async function getResponse(request) {
   let cache = await caches.open(V);
-  if (request.url.match(/\/edit.html/)) {
+  if (request.url.match(/\/edit.html/) || request.url.match(/\?logout$/)) {
     return cache.match(request, {ignoreSearch: true});
   }
   let cached = await cache.match(request);
   if (cached) {
     return cached;
   }
-  console.log(request.url + ' not in cache');
+  console.error(request.url + ' not in cache');
   let response = await fetch(request.url);
   if (response.ok) {
     cache.put(request.url, response.clone());
