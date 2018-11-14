@@ -22,9 +22,9 @@ if (window.gapi) {
       if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
         signIn(true);
       } else {
-        let button = document.getElementById('sync-drive');
-        button.style.display = 'inline-block';
-        button.onclick = () => {
+        let drive_in = document.getElementById('drive-in');
+        drive_in.style.display = 'block';
+        drive_in.onclick = () => {
           gapi.auth2.getAuthInstance().signIn();
         }
       }
@@ -35,6 +35,12 @@ if (window.gapi) {
 function signIn(ok) {
   if (ok) {
     console.log('Signed in');
+    document.getElementById('drive-in').style.display = 'none';
+    let drive_out = document.getElementById('drive-out');
+    drive_out.style.display = 'block';
+    drive_out.onclick = () => {
+      gapi.auth2.getAuthInstance().signOut();
+    }
     if (navigator.serviceWorker.controller) {
       sync();
     } else {
@@ -46,14 +52,19 @@ function signIn(ok) {
         };
       };
     }
+  } else {
+    document.getElementById('drive-out').style.display = 'none';
+    let drive_in = document.getElementById('drive-in');
+    drive_in.style.display = 'block';
+    drive_in.onclick = () => {
+      gapi.auth2.getAuthInstance().signIn();
+    }
   }
 }
 
 function sync() {
   let auth =
     gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse(true);
-  let button = document.getElementById('sync-drive');
-  button.style.display = 'none';
   fetch('sync', {
     method: 'POST',
     body: JSON.stringify(auth),

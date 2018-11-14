@@ -49,7 +49,7 @@ async function showCard(card_id, old_card) {
   if (due.length === 0) {
     main.style.display = 'none';
     placeholder.style.display = 'block';
-    edit.style.visibility = 'hidden';
+    edit.style.display = 'none';
     channel.onmessage = () => {
       showCard();
     };
@@ -64,7 +64,9 @@ async function showCard(card_id, old_card) {
   main.onclick = () => {
     document.getElementById('time').value = now();
     back.style.visibility = 'visible';
+    main.style.cursor = 'auto';
   };
+  main.style.cursor = 'pointer';
   document.getElementById('id').value = id;
   placeholder.style.display = 'none';
   main.style.display = 'block';
@@ -74,11 +76,22 @@ async function showCard(card_id, old_card) {
       '&question=' + encodeURIComponent(card.q) +
       '&answer=' + encodeURIComponent(card.a);
   };
-  edit.style.visibility = 'visible';
+  edit.style.display = 'block';
   MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   channel.onmessage = () => {
     showCard(id, due[id]);
   };
+}
+
+// menu
+let hamburger = document.getElementById('hamburger');
+let menu = document.getElementById('menu');
+hamburger.onclick = () => {
+  if (menu.style.display === 'none') {
+    menu.style.display = 'block';
+  } else {
+    menu.style.display = 'none';
+  }
 }
 
 // reload page every hour

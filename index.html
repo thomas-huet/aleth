@@ -29,7 +29,6 @@ MathJax.Hub.Config({
 </script>
 <script async src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_CHTML-full'></script>
 <title>Aleth</title>
-<button id="sync-drive" type="button" style="display:none;">Synchronize with Google Drive</button>
 <div id="placeholder">
   There is no card to review now.
 </div>
@@ -47,7 +46,10 @@ MathJax.Hub.Config({
     </form>
   </div>
 </div>
-<div id="menu">
-  <button id="new" type="button" onclick="location.href='edit.html'">Create new card</button>
-  <button id="edit" type="button" style="visibility:hidden;">Edit card</button>
+<div id="menu" style="display:none;">
+  <div id="drive-in" style="display:none;">Enable synchronization with Google Drive</div>
+  <div id="drive-out" style="display:none;">Sign out of Google Drive</div>
+  <div id="new" onclick="location.href='edit.html'">Create new card</div>
+  <div id="edit" style="display:none;">Edit card</div>
 </div>
+<button id="hamburger" type="button">&#9776;</button>

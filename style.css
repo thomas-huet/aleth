@@ -1,6 +1,7 @@
 body {
   background-color: #8dbefe;
-  padding: 1em;
+  padding: 1.5em;
+  margin: 0;
   font-family: sans-serif;
 }
 
@@ -8,7 +9,6 @@ body {
   background-color: white;
   border-radius: 1em;
   padding: 2em;
-  margin-bottom: 1em;
 }
 
 #question, #question-preview, #answer, #answer-preview {
@@ -40,23 +40,52 @@ textarea, #question-preview, #answer-preview {
   height: 10rem;
 }
 
-#menu, .bar {
-  text-align: center;
+#hamburger, #menu {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  border-radius: 1.5rem;
 }
 
-button {
-  width: calc(50% - 1em);
+#menu {
+  background-color: #71a2e3;
+  overflow: hidden;
+}
+
+#menu > * {
+  padding: 1rem;
+  padding-right: 4rem;
+  cursor: pointer;
+}
+
+#menu > *:hover {
+  background-color: #6094d9;
+}
+
+#hamburger {
+  height: 3rem;
+  width: 3rem;
+  text-align: center;
+  line-height: 3rem;
+  font-size: 1.5rem;
   border-style: none;
-  border-radius: 1em;
-  padding: 1em;
+  background-color: #5087cf;
+  color: black;
+  cursor: pointer;
+}
+
+.bar {
+  text-align: center;
 }
 
 #edit-question, #preview-question, #edit-answer, #preview-answer {
   width: 7em;
   background-color: white;
-  border-color: #e0e0e0;
+  border-style: none;
+  border-radius: 1em;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+  padding: 1em;
 }
 
 #edit-question.current,
@@ -64,6 +93,7 @@ button {
 #edit-answer.current,
 #preview-answer.current {
   background-color: #f8f8f8;
+  border-color: #e0e0e0;
   border-style: solid;
   border-bottom-style: none;
 }
@@ -79,6 +109,14 @@ textarea#question, #question-preview, textarea#answer, #answer-preview {
   border-top-left-radius: 0;
 }
 
+#correct, #wrong, #done, #cancel {
+  width: calc(50% - 1em);
+  border-style: none;
+  border-radius: 1em;
+  padding: 1em;
+  cursor: pointer;
+}
+
 #correct {
   background-color: #dcffdc;
 }
@@ -87,18 +125,8 @@ textarea#question, #question-preview, textarea#answer, #answer-preview {
   background-color: #ffdcdc;
 }
 
-#new, #edit, #done, #cancel, #sync-drive {
+#done, #cancel {
   background-color: #dbdbdb;
-}
-
-#menu {
-  position: sticky;
-  bottom: 1em;
-}
-
-#sync-drive {
-  width: 100%;
-  margin-bottom: 1em;
 }
 
 /* CSS for the content of the cards */
