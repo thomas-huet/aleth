@@ -86,13 +86,17 @@ async function showCard(card_id, old_card) {
 // menu
 let hamburger = document.getElementById('hamburger');
 let menu = document.getElementById('menu');
-hamburger.onclick = () => {
+hamburger.onclick = (event) => {
   if (menu.style.display === 'none') {
     menu.style.display = 'block';
   } else {
     menu.style.display = 'none';
   }
+  event.stopPropagation();
 }
+document.body.onclick = () => {
+  menu.style.display = 'none';
+};
 
 // reload page every hour
 setTimeout(() => {
