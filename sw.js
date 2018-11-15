@@ -254,16 +254,17 @@ async function synchronize(auth) {
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
   console.log('cards = ', cards);
-  let changed = false;
-  let removed = false;
+  let synced_changed = false;
+  let cards_changed = false;
   for (let id in cards) {
     if (id === 's') {
+      console.log('ignoring s');
       continue;
     }
     if (cards[id].to_delete) {
       if (synced[id]) {
-        changed = true;
-        removed = true;
+        synced_changed = true;
+        cards_changed = true;
         delete synced[id];
         let sync_id = cards[id].s || cards[id].sync_id || await idByName(auth, 'card/' + id);
         await deleteFile(auth, sync_id);
@@ -275,17 +276,17 @@ async function synchronize(auth) {
       if (cards.s >= id) {
         delete cards[id];
         await cache.delete('card/' + id);
-        removed = true;
+        cards_changed = true;
         continue;
       }
-      changed = true;
+      synced_changed = true;
       let data = await get(cache, 'card/' + id);
       let sync_id = await createFile(auth, id, data);
       cards[id].s = sync_id;
       delete cards[id].sync_id;
       synced[id] = cards[id];
     } else if (cards[id].e > synced[id].e) {
-      changed = true;
+      synced_changed = true;
       let data = await get(cache, 'card/' + id);
       let sync_id = cards[id].s || cards[id].sync_id || await idByName(auth, 'card/' + id);
       await updateFile(auth, sync_id, data);
@@ -293,42 +294,44 @@ async function synchronize(auth) {
       delete cards[id].sync_id;
       synced[id] = cards[id];
     } else if (cards[id].r > synced[id].r) {
-      changed = true;
+      synced_changed = true;
       synced[id] = cards[id];
     }
     if (cards[id].d > now() + DURATION_TO_CACHE) {
       delete cards[id];
       await cache.delete('card/' + id);
-      removed = true;
+      cards_changed = true;
     }
   }
-  if (changed) {
+  if (synced_changed) {
     cards.s = now();
     await updateFile(auth, cards_id, synced);
+    cards_changed = true;
   }
-  if (removed) {
-    await update(cache, 'cards.json', synced);
+  if (cards_changed) {
+    await update(cache, 'cards.json', cards);
   }
-  changed = false;
+  cards_changed = false;
   for (let id in synced) {
     if (synced[id].d <= now() + DURATION_TO_CACHE) {
       if (!cards[id] || synced[id].e > cards[id].e) {
-        changed = true;
+        cards_changed = true;
         let sync_id = synced[id].s || synced[id].sync_id || await idByName(auth, 'card/' + id);
         let data = await getFile(auth, sync_id);
         await update(cache, 'card/' + id, data);
         cards[id] = synced[id];
       } else if (synced[id].r > cards[id].r) {
-        changed = true;
+        cards_changed = true;
         cards[id] = synced[id];
       }
     }
   }
-  if (changed) {
+  if (cards_changed) {
     await update(cache, 'cards.json', synced);
     let channel = new BroadcastChannel('sync');
     channel.postMessage('change');
   }
   console.log('synchronization done');
+  console.log('cards = ', cards);
   return new Response();
 }
