@@ -22,7 +22,17 @@ function now() {
   return Math.floor(Date.now() / 1000);
 }
 
+// refresh cards at least every hour
+var timeout;
+function refresh() {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    showCard();
+  }, 60 * 60 * 1000);
+}
+
 async function showCard(card_id, old_card) {
+  refresh();
   console.log('preparing card');
   let cards = await (await fetch('cards.json')).json();
   console.log(cards);
@@ -46,10 +56,12 @@ async function showCard(card_id, old_card) {
   let main = document.getElementById('main');
   let placeholder = document.getElementById('placeholder');
   let edit = document.getElementById('edit');
+  let delete_ = document.getElementById('delete');
   if (due.length === 0) {
     main.style.display = 'none';
     placeholder.style.display = 'block';
     edit.style.display = 'none';
+    delete_.style.display = 'none';
     channel.onmessage = () => {
       showCard();
     };
@@ -77,6 +89,13 @@ async function showCard(card_id, old_card) {
       '&answer=' + encodeURIComponent(card.a);
   };
   edit.style.display = 'block';
+  delete_.onclick = async () => {
+    if (window.confirm('The current card will be deleted (from all your devices if synchronization is enabled).')) {
+      await fetch('card/' + id, {method: 'DELETE'});
+      showCard();
+    }
+  };
+  delete_.style.display = 'block';
   MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   channel.onmessage = () => {
     showCard(id, due[id]);
@@ -97,8 +116,3 @@ hamburger.onclick = (event) => {
 document.body.onclick = () => {
   menu.style.display = 'none';
 };
-
-// reload page every hour
-setTimeout(() => {
-  window.location.reload();
-}, 60 * 60 * 1000);
