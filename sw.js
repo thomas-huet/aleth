@@ -265,7 +265,7 @@ async function synchronize(auth) {
         changed = true;
         removed = true;
         delete synced[id];
-        let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
+        let sync_id = cards[id].s || cards[id].sync_id || await idByName(auth, 'card/' + id);
         await deleteFile(auth, sync_id);
       }
       delete cards[id];
@@ -281,14 +281,16 @@ async function synchronize(auth) {
       changed = true;
       let data = await get(cache, 'card/' + id);
       let sync_id = await createFile(auth, id, data);
-      cards[id].sync_id = sync_id;
+      cards[id].s = sync_id;
+      delete cards[id].sync_id;
       synced[id] = cards[id];
     } else if (cards[id].e > synced[id].e) {
       changed = true;
       let data = await get(cache, 'card/' + id);
-      let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
+      let sync_id = cards[id].s || cards[id].sync_id || await idByName(auth, 'card/' + id);
       await updateFile(auth, sync_id, data);
-      cards[id].sync_id = sync_id;
+      cards[id].s = sync_id;
+      delete cards[id].sync_id;
       synced[id] = cards[id];
     } else if (cards[id].r > synced[id].r) {
       changed = true;
@@ -312,7 +314,7 @@ async function synchronize(auth) {
     if (synced[id].d <= now() + DURATION_TO_CACHE) {
       if (!cards[id] || synced[id].e > cards[id].e) {
         changed = true;
-        let sync_id = synced[id].sync_id || await idByName(auth, 'card/' + id);
+        let sync_id = synced[id].s || synced[id].sync_id || await idByName(auth, 'card/' + id);
         let data = await getFile(auth, sync_id);
         await update(cache, 'card/' + id, data);
         cards[id] = synced[id];
