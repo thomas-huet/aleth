@@ -32,6 +32,7 @@ if (window.gapi) {
   });
 }
 
+var channel = new BroadcastChannel('sync');
 function signIn(ok) {
   if (ok) {
     console.log('Signed in');
@@ -52,6 +53,11 @@ function signIn(ok) {
         };
       };
     }
+    channel.onmessage = (msg) => {
+      if (msg.data === 'sync') {
+        sync();
+      }
+    };
   } else {
     document.getElementById('drive-out').style.display = 'none';
     let drive_in = document.getElementById('drive-in');
@@ -59,6 +65,7 @@ function signIn(ok) {
     drive_in.onclick = () => {
       gapi.auth2.getAuthInstance().signIn();
     }
+    channel.onmessage = null;
   }
 }
 

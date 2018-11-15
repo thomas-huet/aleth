@@ -31,6 +31,7 @@ function refresh() {
   }, 60 * 60 * 1000);
 }
 
+var channel = new BroadcastChannel('sync');
 async function showCard(card_id, old_card) {
   refresh();
   let cards = await (await fetch('cards.json')).json();
@@ -51,7 +52,6 @@ async function showCard(card_id, old_card) {
       due.push(id);
     }
   }
-  let channel = new BroadcastChannel('sync');
   let main = document.getElementById('main');
   let placeholder = document.getElementById('placeholder');
   let edit = document.getElementById('edit');
@@ -61,8 +61,10 @@ async function showCard(card_id, old_card) {
     placeholder.style.display = 'block';
     edit.style.display = 'none';
     delete_.style.display = 'none';
-    channel.onmessage = () => {
-      showCard();
+    channel.onmessage = (msg) => {
+      if (msg.data === 'change') {
+        showCard();
+      }
     };
     return;
   }
@@ -91,13 +93,16 @@ async function showCard(card_id, old_card) {
   delete_.onclick = async () => {
     if (window.confirm('The current card will be deleted (from all your devices if synchronization is enabled).')) {
       await fetch('card/' + id, {method: 'DELETE'});
+      channel.postMessage('sync');
       showCard();
     }
   };
   delete_.style.display = 'block';
   MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-  channel.onmessage = () => {
-    showCard(id, due[id]);
+  channel.onmessage = (msg) => {
+    if (msg.data === 'change') {
+      showCard(id, due[id]);
+    }
   };
 }
 
