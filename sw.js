@@ -78,7 +78,7 @@ async function edit(id, question, answer) {
   let t = now();
   if (!card) {
     card = {
-      d: t + DELAY_MIN,
+      d: t,
       i: DELAY_MIN,
     };
   }

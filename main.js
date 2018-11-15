@@ -91,7 +91,7 @@ async function showCard(card_id, old_card) {
   };
   edit.style.display = 'block';
   delete_.onclick = async () => {
-    if (window.confirm('The current card will be deleted (from all your devices if synchronization is enabled).')) {
+    if (window.confirm('The current card will be deleted.')) {
       await fetch('card/' + id, {method: 'DELETE'});
       channel.postMessage('sync');
       showCard();
