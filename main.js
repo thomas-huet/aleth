@@ -36,6 +36,7 @@ async function showCard(card_id, old_card) {
   let cards = await (await fetch('cards.json')).json();
   let t = now();
   if (card_id &&
+      cards[card_id] &&
       cards[card_id].d < t &&
       !cards[card_id].to_delete &&
       cards[card_id].e === old_card.e) {
