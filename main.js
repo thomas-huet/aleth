@@ -33,9 +33,7 @@ function refresh() {
 
 async function showCard(card_id, old_card) {
   refresh();
-  console.log('preparing card');
   let cards = await (await fetch('cards.json')).json();
-  console.log(cards);
   let t = now();
   if (card_id &&
       cards[card_id].d < t &&

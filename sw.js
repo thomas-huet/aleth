@@ -131,15 +131,12 @@ async function reset() {
 
 self.addEventListener('fetch', event => {
   let url = new URL(event.request.url);
-  if (url.host === 'apis.google.com' ||
-      url.host === 'csi.gstatic.com') {
-    console.log(url.host);
+  if (url.host === 'apis.google.com') {
     return;
   }
   if (event.request.url.match(/\/reset$/)) {
     event.respondWith(reset());
   } else if (event.request.method === 'GET') {
-    console.log('GET ' + event.request.url);
     event.respondWith(getResponse(event.request));
   } else if (event.request.method === 'POST' &&
              event.request.url.match(/\/edit-card$/)) {
@@ -258,7 +255,6 @@ async function synchronize(auth) {
   let cards_changed = false;
   for (let id in cards) {
     if (id === 's') {
-      console.log('ignoring s');
       continue;
     }
     if (cards[id].to_delete) {
@@ -304,14 +300,8 @@ async function synchronize(auth) {
     }
   }
   if (synced_changed) {
-    cards.s = now();
     await updateFile(auth, cards_id, synced);
-    cards_changed = true;
   }
-  if (cards_changed) {
-    await update(cache, 'cards.json', cards);
-  }
-  cards_changed = false;
   for (let id in synced) {
     if (synced[id].d <= now() + DURATION_TO_CACHE) {
       if (!cards[id] || synced[id].e > cards[id].e) {
@@ -326,8 +316,11 @@ async function synchronize(auth) {
       }
     }
   }
+  if (cards_changed || synced_changed) {
+    cards.s = now();
+    await update(cache, 'cards.json', cards);
+  }
   if (cards_changed) {
-    await update(cache, 'cards.json', synced);
     let channel = new BroadcastChannel('sync');
     channel.postMessage('change');
   }
