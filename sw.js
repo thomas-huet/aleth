@@ -136,23 +136,30 @@ self.addEventListener('fetch', event => {
     console.log(url.host);
     return;
   }
-  if(event.request.url.match(/\/reset$/)){
+  if (event.request.url.match(/\/reset$/)) {
     event.respondWith(reset());
   } else if (event.request.method === 'GET') {
     console.log('GET ' + event.request.url);
     event.respondWith(getResponse(event.request));
-  } else if (event.request.url.match(/\/edit-card$/)) {
+  } else if (event.request.method === 'POST' &&
+             event.request.url.match(/\/edit-card$/)) {
     event.respondWith(event.request.formData().then(data =>
       edit(data.get('id') || now(),
            data.get('question'),
            data.get('answer'))
     ));
-  } else if(event.request.url.match(/\/review-card$/)){
+  } else if (event.request.method === 'POST' &&
+             event.request.url.match(/\/review-card$/)) {
     event.respondWith(event.request.formData().then(data =>
       review(data.get('id'), parseInt(data.get('time')), data.has('correct'))
     ));
-  } else if(event.request.url.match(/\/sync$/)){
+  } else if (event.request.method === 'POST' &&
+             event.request.url.match(/\/sync$/)) {
     event.respondWith(event.request.json().then(synchronize));
+  } else if (event.request.method === 'DELETE' &&
+             event.request.url.match(/\/card\/[0-9]+$/)) {
+    let id = event.request.url.match(/\/card\/([0-9]+)$/)[1];
+    event.respondWith(deleteCard(id));
   }
 });
 
@@ -254,11 +261,13 @@ async function synchronize(auth) {
       continue;
     }
     if (cards[id].to_delete) {
-      changed = true;
-      removed = true;
-      delete synced[id];
-      let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
-      await deleteFile(auth, sync_id);
+      if (synced[id]) {
+        changed = true;
+        removed = true;
+        delete synced[id];
+        let sync_id = cards[id].sync_id || await idByName(auth, 'card/' + id);
+        await deleteFile(auth, sync_id);
+      }
       delete cards[id];
       continue;
     }
