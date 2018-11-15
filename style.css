@@ -15,6 +15,21 @@ body {
   padding: 2em;
 }
 
+#create {
+  cursor: pointer;
+  display: inline-block;
+  border-radius: 1em;
+  background-color: #71a2e3;
+  padding-left: 1em;
+  padding-right: 1em;
+  height: 2em;
+  line-height: 2em;
+}
+
+#create:hover {
+  background-color: #6094d9;
+}
+
 #question, #question-preview, #answer, #answer-preview {
   border-color: #e0e0e0;
   border-style: dashed;
@@ -25,6 +40,7 @@ body {
   overflow: auto;
 }
 
+#placeholder > *:first-child,
 #question > *:first-child,
 #question-preview > *:first-child,
 #answer > *:first-child,
@@ -32,6 +48,7 @@ body {
   margin-top: 0;
 }
 
+#placeholder > *:last-child,
 #question > *:last-child,
 #question-preview > *:last-child,
 #answer > *:last-child,
@@ -48,10 +65,11 @@ textarea, #question-preview, #answer-preview {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  border-radius: 1.5rem;
 }
 
 #menu {
+  border-radius: 1rem;
+  border-top-right-radius: 1.5rem;
   background-color: #71a2e3;
   overflow: hidden;
 }
@@ -73,6 +91,7 @@ textarea, #question-preview, #answer-preview {
   line-height: 3rem;
   font-size: 1.5rem;
   border-style: none;
+  border-radius: 1.5rem;
   background-color: #5087cf;
   color: black;
   cursor: pointer;
