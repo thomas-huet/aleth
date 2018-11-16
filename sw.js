@@ -16,6 +16,7 @@ const BASE_FILES = [
   'edit.js',
   'style.css',
   'sync.js',
+  'about.html',
   // external dependencies
   'https://cdnjs.cloudflare.com/ajax/libs/marked/0.5.1/marked.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_CHTML-full',
