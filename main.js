@@ -91,7 +91,7 @@ async function showCard(card_id, old_card) {
   };
   edit.style.display = 'block';
   delete_.onclick = async () => {
-    if (window.confirm('The current card will be deleted.')) {
+    if (window.confirm('La carte va être supprimée.')) {
       await fetch('card/' + id, {method: 'DELETE'});
       channel.postMessage('sync');
       showCard();
