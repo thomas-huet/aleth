@@ -1,7 +1,7 @@
 {
   "name": "Aleth",
   "short_name": "Aleth",
-  "description": "Simple flashcards",
+  "description": "Cartes mémoires faciles à utiliser",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#5087cf",
