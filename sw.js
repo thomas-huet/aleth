@@ -86,8 +86,8 @@ async function edit(id, question, answer) {
   card.e = t;
   card.r = t;
   cards[id] = card;
-  await update(cache, 'cards.json', cards);
   await update(cache, 'card/' + id, {q: question, a: answer});
+  await update(cache, 'cards.json', cards);
   return Response.redirect('.');
 }
 
@@ -182,19 +182,7 @@ async function createFile(auth, name, content) {
       headers: { Authorization: 'Bearer ' + auth.access_token },
       body: form,
     });
-  let id = (await response.json()).id;
-  return id;
-}
-
-async function deleteFile(auth, id) {
-  let response = await fetch(
-    'https://www.googleapis.com/drive/v3/files/' +
-    id,
-    {
-      method: 'DELETE',
-      headers: { Authorization: 'Bearer ' + auth.access_token },
-    });
-  return;
+  return (await response.json()).id;
 }
 
 async function idByName(auth, name) {
@@ -208,13 +196,29 @@ async function idByName(auth, name) {
     });
   let o = await response.json();
   let files = o.files;
+  if (files.length !== 1) {
+    console.error(files.length + 'copies of file ' + name);
+  }
   if (files.length >= 1) {
     return files[files.length - 1].id;
   }
   return undefined;
 }
 
-async function getFile(auth, id) {
+async function deleteFile(auth, id, name) {
+  id = id || await idByName(auth, name);
+  let response = await fetch(
+    'https://www.googleapis.com/drive/v3/files/' +
+    id,
+    {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+    });
+  return id;
+}
+
+async function getFile(auth, id, name) {
+  id = id || await idByName(auth, name);
   let response = await fetch(
     'https://www.googleapis.com/drive/v3/files/' +
     id +
@@ -225,7 +229,8 @@ async function getFile(auth, id) {
   return response.json();
 }
 
-async function updateFile(auth, id, content) {
+async function updateFile(auth, id, name, content) {
+  id = id || await idByName(auth, name);
   let response = await fetch(
     'https://www.googleapis.com/upload/drive/v3/files/' +
     id +
@@ -236,7 +241,7 @@ async function updateFile(auth, id, content) {
       headers: { Authorization: 'Bearer ' + auth.access_token },
       body: JSON.stringify(content),
     });
-  return response.json();
+  return id;
 }
 
 async function synchronize(auth) {
@@ -254,6 +259,12 @@ async function synchronize(auth) {
   console.log('cards = ', cards);
   let synced_changed = false;
   let cards_changed = false;
+  let todo_before_cards_update = [];
+  let cards_updated;
+  let cards_update = new Promise(resolve => { cards_updated = resolve; });
+  let todo_before_synced_update = [];
+  let synced_updated;
+  let synced_update = new Promise(resolve => { synced_updated = resolve; });
   for (let id in cards) {
     if (id === 's') {
       continue;
@@ -267,8 +278,9 @@ async function synchronize(auth) {
         synced_changed = true;
         cards_changed = true;
         delete synced[id];
-        let sync_id = cards[id].s || await idByName(auth, 'card/' + id);
-        await deleteFile(auth, sync_id);
+        synced_update.then(() => {
+          deleteFile(auth, cards[id].s, 'card/' + id);
+        });
       }
       delete cards[id];
       continue;
@@ -276,36 +288,43 @@ async function synchronize(auth) {
     if (!synced[id]) {
       if (cards.s >= id) {
         delete cards[id];
-        await cache.delete('card/' + id);
+        cards_update.then(() => cache.delete('card/' + id));
         cards_changed = true;
         continue;
       }
       synced_changed = true;
-      let data = await get(cache, 'card/' + id);
-      let sync_id = await createFile(auth, id, data);
-      cards[id].s = sync_id;
-      delete cards[id].sync_id;
-      synced[id] = cards[id];
+      todo_before_synced_update.push(
+        get(cache, 'card/' + id)
+        .then(data => createFile(auth, id, data))
+        .then(sync_id => {
+          cards[id].s = sync_id;
+          synced[id] = cards[id];
+        }));
     } else if (cards[id].e > synced[id].e) {
       synced_changed = true;
-      let data = await get(cache, 'card/' + id);
-      let sync_id = cards[id].s || await idByName(auth, 'card/' + id);
-      await updateFile(auth, sync_id, data);
-      cards[id].s = sync_id;
-      delete cards[id].sync_id;
-      synced[id] = cards[id];
+      todo_before_synced_update.push(
+        get(cache, 'card/' + id)
+        .then(data => updateFile(auth, cards[id].s, 'card/' + id, data))
+        .then(sync_id => {
+          cards[id].s = sync_id;
+          synced[id] = cards[id];
+        }));
     } else if (cards[id].r > synced[id].r) {
       synced_changed = true;
       synced[id] = cards[id];
     }
     if (cards[id].d > now() + DURATION_TO_CACHE) {
       delete cards[id];
-      await cache.delete('card/' + id);
+      cards_update.then(() => {
+        cache.delete('card/' + id);
+      });
       cards_changed = true;
     }
   }
   if (synced_changed) {
-    await updateFile(auth, cards_id, synced);
+    await Promise.all(todo_before_synced_update);
+    await updateFile(auth, cards_id, 'cards.json', synced);
+    synced_updated();
   }
   for (let id in synced) {
     if (synced[id].sync_id) {
@@ -315,9 +334,9 @@ async function synchronize(auth) {
     if (synced[id].d <= now() + DURATION_TO_CACHE) {
       if (!cards[id] || synced[id].e > cards[id].e) {
         cards_changed = true;
-        let sync_id = synced[id].s || await idByName(auth, 'card/' + id);
-        let data = await getFile(auth, sync_id);
-        await update(cache, 'card/' + id, data);
+        todo_before_cards_update.push(
+          getFile(auth, synced[id].s, 'card/' + id)
+          .then(data => update(cache, 'card/' + id, data)));
         cards[id] = synced[id];
       } else if (synced[id].r > cards[id].r) {
         cards_changed = true;
@@ -327,7 +346,9 @@ async function synchronize(auth) {
   }
   if (cards_changed || synced_changed) {
     cards.s = now();
+    await Promise.all(todo_before_cards_update);
     await update(cache, 'cards.json', cards);
+    cards_updated();
   }
   if (cards_changed) {
     let channel = new BroadcastChannel('sync');
