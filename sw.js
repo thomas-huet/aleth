@@ -272,7 +272,7 @@ async function synchronize(auth) {
     if (cards[id].sync_id) {
       cards[id].s = cards[id].sync_id;
     }
-    delete synced[id].sync_id;
+    delete cards[id].sync_id;
     if (cards[id].to_delete) {
       if (synced[id]) {
         synced_changed = true;
