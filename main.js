@@ -117,6 +117,6 @@ hamburger.onclick = (event) => {
   }
   event.stopPropagation();
 }
-document.body.onclick = () => {
+document.onclick = () => {
   menu.style.display = 'none';
 };
