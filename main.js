@@ -101,7 +101,7 @@ async function showCard(card_id, old_card) {
   MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   channel.onmessage = (msg) => {
     if (msg.data === 'change') {
-      showCard(id, due[id]);
+      showCard(id, cards[id]);
     }
   };
 }
