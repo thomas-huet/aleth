@@ -48,7 +48,7 @@ async function showCard(card_id, old_card) {
     if (id === 's') {
       continue;
     }
-    if (cards[id].d < t && !cards[id].to_delete) {
+    if (cards[id].d <= t && !cards[id].to_delete) {
       due.push(id);
     }
   }
