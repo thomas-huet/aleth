@@ -313,13 +313,6 @@ async function synchronize(auth) {
       synced_changed = true;
       synced[id] = cards[id];
     }
-    if (cards[id].d > now() + DURATION_TO_CACHE) {
-      delete cards[id];
-      cards_update.then(() => {
-        cache.delete('card/' + id);
-      });
-      cards_changed = true;
-    }
   }
   if (synced_changed) {
     await Promise.all(todo_before_synced_update);
@@ -342,6 +335,12 @@ async function synchronize(auth) {
         cards_changed = true;
         cards[id] = synced[id];
       }
+    } else if (cards[id]) {
+      delete cards[id];
+      cards_update.then(() => {
+        cache.delete('card/' + id);
+      });
+      cards_changed = true;
     }
   }
   if (cards_changed || synced_changed) {
