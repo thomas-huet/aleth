@@ -32,6 +32,11 @@ body {
   background-color: #6094d9;
 }
 
+#main.edit {
+  height: calc(100% - 4em);
+  min-height: 37rem;
+}
+
 #question, #question-preview, #answer, #answer-preview {
   border-color: #e0e0e0;
   border-style: dashed;
@@ -58,9 +63,18 @@ body {
   margin-bottom: 0;
 }
 
-textarea, #question-preview, #answer-preview {
+textarea {
   font-size: 1rem;
-  height: 10rem;
+}
+
+textarea#question, #question-preview {
+  height: calc(30% - 5.1rem);
+  min-height: 6rem;
+}
+
+textarea#answer, #answer-preview {
+  height: calc(70% - 11.9rem);
+  min-height: 14rem;
 }
 
 #hamburger, #menu {
