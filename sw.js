@@ -117,7 +117,11 @@ async function deleteCard(id) {
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
   let card = cards[id];
-  card.to_delete = true;
+  if (cards.s >= id) {
+    card.to_delete = true;
+  } else {
+    delete cards[id];
+  }
   await update(cache, 'cards.json', cards);
   await cache.delete('card/' + id);
   return Response.redirect('.');
