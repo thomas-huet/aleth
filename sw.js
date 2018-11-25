@@ -169,6 +169,32 @@ self.addEventListener('fetch', event => {
 
 // ----- Synchronization -----
 
+// Time before retrying a request if throttled
+const GAPI_DELAY = 100 * 1000; // 100s
+
+async function driveRequest(auth, uri, options) {
+  options = options || {};
+  let response = await fetch(uri, Object.assign({
+      headers: { Authorization: 'Bearer ' + auth.access_token },
+    }, options));
+  if (response.ok) {
+    return response.json();
+  }
+  if (response.status === 403) {
+    console.warn(uri + ' 403');
+    await new Promise(function(resolve) {
+      setTimeout(resolve, GAPI_DELAY);
+    });
+    response = await fetch(uri, Object.assign({
+	headers: { Authorization: 'Bearer ' + auth.access_token },
+      }, options));
+    if (response.ok) {
+      return response.json();
+    }
+  }
+  throw 'Error fetching "' + uri + '": ' + await response.text();
+}
+
 async function createFile(auth, name, content) {
   let metadata = new Blob([JSON.stringify({
     name: name,
@@ -179,35 +205,26 @@ async function createFile(auth, name, content) {
   let form = new FormData();
   form.append('metadata', metadata);
   form.append('file', file);
-  let response = await fetch(
+  let response = await driveRequest(
+    auth,
     'https://www.googleapis.com/upload/drive/v3/files?' +
     'uploadType=multipart&' +
     'fields=id',
     {
       method: 'POST',
-      headers: { Authorization: 'Bearer ' + auth.access_token },
       body: form,
     });
-  if (!response.ok) {
-    throw 'createFile: ' + await response.text();
-  }
-  return (await response.json()).id;
+  return response.id;
 }
 
 async function idByName(auth, name) {
-  let response = await fetch(
+  let response = await driveRequest(
+    auth,
     'https://www.googleapis.com/drive/v3/files?' +
     'spaces=appDataFolder&' +
     'q=name%3D%22' + name + '%22&' +
-    'fields=files(id)',
-    {
-      headers: { Authorization: 'Bearer ' + auth.access_token },
-    });
-  if (!response.ok) {
-    throw 'idByName: ' + await response.text();
-  }
-  let o = await response.json();
-  let files = o.files;
+    'fields=files(id)');
+  let files = response.files;
   if (files.length !== 1) {
     console.error(files.length + 'copies of file ' + name);
   }
@@ -219,49 +236,37 @@ async function idByName(auth, name) {
 
 async function deleteFile(auth, id, name) {
   id = id || await idByName(auth, name);
-  let response = await fetch(
+  let response = await driveRequest(
+    auth,
     'https://www.googleapis.com/drive/v3/files/' +
     id,
     {
       method: 'DELETE',
-      headers: { Authorization: 'Bearer ' + auth.access_token },
     });
-  if (!response.ok) {
-    throw 'deleteFile: ' + await response.text();
-  }
   return id;
 }
 
 async function getFile(auth, id, name) {
   id = id || await idByName(auth, name);
-  let response = await fetch(
+  return driveRequest(
+    auth,
     'https://www.googleapis.com/drive/v3/files/' +
     id +
-    '?alt=media',
-    {
-      headers: { Authorization: 'Bearer ' + auth.access_token },
-    });
-  if (!response.ok) {
-    throw 'getFile: ' + await response.text();
-  }
-  return response.json();
+    '?alt=media');
 }
 
 async function updateFile(auth, id, name, content) {
   id = id || await idByName(auth, name);
-  let response = await fetch(
+  let response = await driveRequest(
+    auth,
     'https://www.googleapis.com/upload/drive/v3/files/' +
     id +
     '?uploadType=media&' +
     'fields=id',
     {
       method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + auth.access_token },
       body: JSON.stringify(content),
     });
-  if (!response.ok) {
-    throw 'updateFile: ' + await response.text();
-  }
   return id;
 }
 
