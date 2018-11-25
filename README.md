@@ -21,7 +21,6 @@ The goal of this project is to make a flashcard app as frictionless as possible 
 All new features must be compatible with that goal.
 If you want to add features that go the opposite way, you are welcome to fork this project.
 
-You can clear the cache and sign out of Google Drive by visiting the [reset](https://thomas-huet.github.io/aleth/reset) url.
 Synchronization uses the [Application Data folder](https://developers.google.com/drive/api/v3/appdata) in Google Drive.
 
 ## Spaced repetition algorithm

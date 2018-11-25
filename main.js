@@ -1,26 +1,24 @@
-"use strict";
-
 marked.setOptions({
   breaks: true,
   headerIds: false,
 });
 
-if (navigator.serviceWorker.controller) {
-  showCard();
-} else {
-  navigator.serviceWorker.oncontrollerchange = function() {
-    this.controller.onstatechange = function() {
-      if (this.state === 'activated') {
-        showCard();
-      }
-    };
-  };
-  navigator.serviceWorker.register('sw.js');
-}
+import * as controller from './controller.js';
+controller.ready.then(showCard);
 
 function now() {
   return Math.floor(Date.now() / 1000);
 }
+
+// sync
+
+import * as gauth from './gauth.js';
+gauth.execOnSignIn((auth) => {
+  fetch('sync', {
+    method: 'POST',
+    body: JSON.stringify(auth),
+  });
+});
 
 // refresh cards at least every hour
 var timeout;
@@ -93,8 +91,12 @@ async function showCard(card_id, old_card) {
   delete_.onclick = async () => {
     if (window.confirm('La carte va être supprimée.')) {
       await fetch('card/' + id, {method: 'DELETE'});
-      channel.postMessage('sync');
-      showCard();
+      gauth.exec((auth) => {
+        fetch('sync', {
+          method: 'POST',
+          body: JSON.stringify(auth),
+        });
+      });
     }
   };
   delete_.style.display = 'block';
@@ -105,18 +107,3 @@ async function showCard(card_id, old_card) {
     }
   };
 }
-
-// menu
-let hamburger = document.getElementById('hamburger');
-let menu = document.getElementById('menu');
-hamburger.onclick = (event) => {
-  if (menu.style.display === 'none') {
-    menu.style.display = 'block';
-  } else {
-    menu.style.display = 'none';
-  }
-  event.stopPropagation();
-}
-document.onclick = () => {
-  menu.style.display = 'none';
-};

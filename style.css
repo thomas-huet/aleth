@@ -15,6 +15,7 @@ body {
   border-radius: 1em;
   padding: 2em;
   margin: 1.5em;
+  overflow: auto;
 }
 
 #create {
@@ -38,8 +39,7 @@ body {
 }
 
 #question, #question-preview, #answer, #answer-preview {
-  border-color: #e0e0e0;
-  border-style: dashed;
+  border: dashed #e0e0e0;
   border-radius: 1em;
   padding: 1em;
   width: calc(100% - 2em);
@@ -106,7 +106,7 @@ textarea#answer, #answer-preview {
   text-align: center;
   line-height: 3rem;
   font-size: 1.5rem;
-  border-style: none;
+  border: 0;
   border-radius: 1.5rem;
   background-color: #5087cf;
   color: black;
@@ -120,7 +120,7 @@ textarea#answer, #answer-preview {
 #edit-question, #preview-question, #edit-answer, #preview-answer {
   width: 7em;
   background-color: white;
-  border-style: none;
+  border: 0;
   border-radius: 1em;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -132,8 +132,7 @@ textarea#answer, #answer-preview {
 #edit-answer.current,
 #preview-answer.current {
   background-color: #f8f8f8;
-  border-color: #e0e0e0;
-  border-style: solid;
+  border: solid #e0e0e0;
   border-bottom-style: none;
 }
 
@@ -150,7 +149,7 @@ textarea#question, #question-preview, textarea#answer, #answer-preview {
 
 #correct, #wrong, #done, #cancel {
   width: calc(50% - 1em);
-  border-style: none;
+  border: 0;
   border-radius: 1em;
   padding: 1em;
   cursor: pointer;
@@ -176,11 +175,45 @@ button::-moz-focus-inner {
   border: 0;
 }
 
+#dashboard {
+  width: 100%;
+  min-width: 48em;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+#dashboard th {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+#dashboard td {
+  border-top: 1px solid;
+  text-align: center;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  cursor: pointer;
+}
+
+#dashboard .excerpt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: start;
+}
+
+.date {
+  width: 8em;
+}
+
+#dashboard tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
 /* CSS for the content of the cards */
 
 pre {
-  border-style: solid;
-  border-width: 1px;
+  border: 1px solid;
   border-radius: 1em;
   padding: 1em;
   overflow: auto;
