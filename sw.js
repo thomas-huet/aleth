@@ -11,12 +11,13 @@ function now() {
 
 const BASE_FILES = [
   '.',
-  'main.js',
+  'about.html',
+  'controller.js',
   'edit.html',
   'edit.js',
+  'gauth.js',
+  'main.js',
   'style.css',
-  'sync.js',
-  'about.html',
   // external dependencies
   'https://cdnjs.cloudflare.com/ajax/libs/marked/0.5.1/marked.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_CHTML-full',
@@ -131,7 +132,7 @@ async function reset() {
   console.log('resetting cache');
   await caches.delete(V);
   await init();
-  return Response.redirect('.?logout');
+  return Response.redirect('.');
 }
 
 self.addEventListener('fetch', event => {
