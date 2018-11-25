@@ -188,6 +188,9 @@ async function createFile(auth, name, content) {
       headers: { Authorization: 'Bearer ' + auth.access_token },
       body: form,
     });
+  if (!response.ok) {
+    throw 'createFile: ' + await response.text();
+  }
   return (await response.json()).id;
 }
 
@@ -200,6 +203,9 @@ async function idByName(auth, name) {
     {
       headers: { Authorization: 'Bearer ' + auth.access_token },
     });
+  if (!response.ok) {
+    throw 'idByName: ' + await response.text();
+  }
   let o = await response.json();
   let files = o.files;
   if (files.length !== 1) {
@@ -220,6 +226,9 @@ async function deleteFile(auth, id, name) {
       method: 'DELETE',
       headers: { Authorization: 'Bearer ' + auth.access_token },
     });
+  if (!response.ok) {
+    throw 'deleteFile: ' + await response.text();
+  }
   return id;
 }
 
@@ -232,6 +241,9 @@ async function getFile(auth, id, name) {
     {
       headers: { Authorization: 'Bearer ' + auth.access_token },
     });
+  if (!response.ok) {
+    throw 'getFile: ' + await response.text();
+  }
   return response.json();
 }
 
@@ -247,10 +259,13 @@ async function updateFile(auth, id, name, content) {
       headers: { Authorization: 'Bearer ' + auth.access_token },
       body: JSON.stringify(content),
     });
+  if (!response.ok) {
+    throw 'updateFile: ' + await response.text();
+  }
   return id;
 }
 
-async function synchronize(auth) {
+async function synchronize(auth) { try {
   console.log('synchronizing');
   let cards_id = await idByName(auth, 'cards.json');
   let synced = {};
@@ -362,4 +377,6 @@ async function synchronize(auth) {
   console.log('synchronization done');
   console.log('cards = ', cards);
   return new Response();
-}
+} catch (err) {
+  console.error(err);
+}}
