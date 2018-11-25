@@ -17,6 +17,7 @@ const BASE_FILES = [
   'edit.js',
   'gauth.js',
   'main.js',
+  'menu.js',
   'style.css',
   // external dependencies
   'https://cdnjs.cloudflare.com/ajax/libs/marked/0.5.1/marked.min.js',
