@@ -65,7 +65,7 @@ async function getResponse(request) {
   if (cached) {
     return cached;
   }
-  console.error(request.url + ' not in cache');
+  console.warn(request.url + ' not in cache');
   return fetch(request);
 }
 
@@ -134,9 +134,6 @@ async function reset() {
 
 self.addEventListener('fetch', event => {
   let url = new URL(event.request.url);
-  if (url.host === 'apis.google.com') {
-    return;
-  }
   if (event.request.url.match(/\/reset$/)) {
     event.respondWith(reset());
   } else if (event.request.method === 'GET') {
@@ -182,7 +179,7 @@ async function driveRequest(auth, uri, options) {
       setTimeout(resolve, GAPI_DELAY);
     });
     response = await fetch(uri, Object.assign({
-	headers: { Authorization: 'Bearer ' + auth.access_token },
+        headers: { Authorization: 'Bearer ' + auth.access_token },
       }, options));
     if (response.ok) {
       return response.json();
@@ -271,7 +268,7 @@ async function synchronize(auth) { try {
   let cards_id = await idByName(auth, 'cards.json');
   let synced = {};
   if (cards_id !== undefined) {
-    synced = await getFile(auth, cards_id);
+    synced = await getFile(auth, cards_id, 'cards.json');
   } else {
     cards_id = await createFile(auth, 'cards.json', {});
   }
@@ -301,7 +298,7 @@ async function synchronize(auth) { try {
         cards_changed = true;
         delete synced[id];
         synced_update.then(() => {
-          deleteFile(auth, cards[id].s, 'card/' + id);
+          deleteFile(auth, cards[id].s, id);
         });
       }
       delete cards[id];
@@ -326,7 +323,7 @@ async function synchronize(auth) { try {
       synced_changed = true;
       todo_before_synced_update.push(
         get(cache, 'card/' + id)
-        .then(data => updateFile(auth, cards[id].s, 'card/' + id, data))
+        .then(data => updateFile(auth, cards[id].s, id, data))
         .then(sync_id => {
           cards[id].s = sync_id;
           synced[id] = cards[id];
@@ -350,7 +347,7 @@ async function synchronize(auth) { try {
       if (!cards[id] || synced[id].e > cards[id].e) {
         cards_changed = true;
         todo_before_cards_update.push(
-          getFile(auth, synced[id].s, 'card/' + id)
+          getFile(auth, synced[id].s, id)
           .then(data => update(cache, 'card/' + id, data)));
         cards[id] = synced[id];
       } else if (synced[id].r > cards[id].r) {
