@@ -58,7 +58,7 @@ self.addEventListener('activate', event => {
 
 async function getResponse(request) {
   let cache = await caches.open(V);
-  if (request.url.match(/\/edit.html/) || request.url.match(/\?logout$/)) {
+  if (request.url.match(/\/edit.html/)) {
     return cache.match(request, {ignoreSearch: true});
   }
   let cached = await cache.match(request);
@@ -66,11 +66,7 @@ async function getResponse(request) {
     return cached;
   }
   console.error(request.url + ' not in cache');
-  let response = await fetch(request.url);
-  if (response.ok) {
-    cache.put(request.url, response.clone());
-  }
-  return response;
+  return fetch(request);
 }
 
 async function edit(id, question, answer) {
