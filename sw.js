@@ -28,7 +28,10 @@ const BASE_FILES = [
 ];
 
 async function get(cache, key) {
-  return (await cache.match(key)).json();
+  let response = await cache.match(key);
+  if (response) {
+    return response.json();
+  }
 }
 
 function update(cache, key, value) {
@@ -45,8 +48,12 @@ async function init() {
   if (!await cache.match('cards.json')) {
     console.log('creating new cards.json');
     await update(cache, 'cards.json', {s: 0});
+    await update(cache, 'dependencies.json', {});
   } else  {
     console.log('keeping old cards.json');
+  }
+  if (!await cache.match('dependencies.json')) {
+    await update(cache, 'dependencies.json', {});
   }
   await cache.addAll(BASE_FILES);
 }
@@ -69,7 +76,32 @@ async function getResponse(request) {
   return fetch(request);
 }
 
-async function edit(id, question, answer) {
+async function addDependency(dependencies, dep, cache) {
+  if (dependencies[dep]) {
+    dependencies[dep] ++;
+    return true;
+  } else { try {
+    let response = await fetch(dep);
+    if (response.ok) {
+      await cache.put(dep, response);
+      dependencies[dep] = 1;
+      return true;
+    }
+  } catch (e) {} }
+  return false;
+}
+
+async function removeDependencies(dependencies, deps, cache) {
+  for (let dep of deps) {
+    dependencies[dep] --;
+    if (dependencies[dep] === 0) {
+      delete dependencies[dep];
+      await cache.delete(dep);
+    }
+  }
+}
+
+async function edit(id, question, answer, deps) {
   console.log('editing ' + id);
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
@@ -84,7 +116,22 @@ async function edit(id, question, answer) {
   card.e = t;
   card.r = t;
   cards[id] = card;
-  await update(cache, 'card/' + id, {q: question, a: answer});
+  let dependencies = await get(cache, 'dependencies.json');
+  let data = {q: question, a: answer};
+  if (deps.length > 0) {
+    data.d = [];
+    for (let dep of deps) {
+      if (await addDependency(dependencies, dep, cache)) {
+        data.d.push(dep);
+      }
+    }
+  }
+  let old_data = await get(cache, 'card/' + id);
+  if (old_data && old_data.d) {
+    await removeDependencies(dependencies, old_data.d, cache);
+  }
+  await update(cache, 'card/' + id, data);
+  await update(cache, 'dependencies.json', dependencies);
   await update(cache, 'cards.json', cards);
   return Response.redirect('.');
 }
@@ -120,6 +167,12 @@ async function deleteCard(id) {
   } else {
     delete cards[id];
   }
+  let data = await get(cache, 'card/' + id);
+  if (data.d) {
+    let dependencies = await get(cache, 'dependencies.json');
+    await removeDependencies(dependencies, data.d, cache);
+    await update(cache, 'dependencies.json', dependencies);
+  }
   await update(cache, 'cards.json', cards);
   await cache.delete('card/' + id);
   return Response.redirect('.');
@@ -143,7 +196,8 @@ self.addEventListener('fetch', event => {
     event.respondWith(event.request.formData().then(data =>
       edit(data.get('id') || now(),
            data.get('question'),
-           data.get('answer'))
+           data.get('answer'),
+           JSON.parse(data.get('deps')))
     ));
   } else if (event.request.method === 'POST' &&
              event.request.url.match(/\/review-card$/)) {
@@ -307,7 +361,15 @@ async function synchronize(auth) { try {
     if (!synced[id]) {
       if (cards.s >= id) {
         delete cards[id];
-        cards_update.then(() => cache.delete('card/' + id));
+        cards_update.then(async () => {
+          let data = await get(cache, 'card/' + id);
+          if (data.d) {
+            let dependencies = await get(cache, 'dependencies.json');
+            await removeDependencies(dependencies, data.d, cache);
+            await update(cache, 'dependencies.json', dependencies);
+          }
+          cache.delete('card/' + id);
+        });
         cards_changed = true;
         continue;
       }
@@ -348,7 +410,24 @@ async function synchronize(auth) { try {
         cards_changed = true;
         todo_before_cards_update.push(
           getFile(auth, synced[id].s, id)
-          .then(data => update(cache, 'card/' + id, data)));
+          .then(async data => {
+            let dependencies = await get(cache, 'dependencies.json');
+            if (data.d) {
+              deps = [];
+              for (let dep of data.d) {
+                if (await addDependency(dependencies, dep, cache)) {
+                  deps.push(dep);
+                }
+              }
+              data.d = deps;
+            }
+            let old_data = await get(cache, 'card/' + id);
+            if (old_data && old_data.d) {
+              await removeDependencies(dependencies, old_data.d, cache);
+            }
+            await update(cache, 'dependencies.json', dependencies);
+            update(cache, 'card/' + id, data);
+          }));
         cards[id] = synced[id];
       } else if (synced[id].r > cards[id].r) {
         cards_changed = true;
@@ -356,7 +435,13 @@ async function synchronize(auth) { try {
       }
     } else if (cards[id]) {
       delete cards[id];
-      cards_update.then(() => {
+      cards_update.then(async () => {
+        let data = await get(cache, 'card/' + id);
+        if (data.d) {
+          let dependencies = await get(cache, 'dependencies.json');
+          await removeDependencies(dependencies, data.d, cache);
+          await update(cache, 'dependencies.json', dependencies);
+        }
         cache.delete('card/' + id);
       });
       cards_changed = true;

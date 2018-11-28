@@ -68,3 +68,26 @@ window.addEventListener('load', () => {
   question.style.borderTopWidth = b;
   answer.style.borderTopWidth = b;
 });
+
+function getSrcs(element) {
+  let srcs = {};
+  for (let tag of ['audio', 'iframe', 'img', 'script', 'source', 'track', 'video']) {
+    for (let e of element.getElementsByTagName(tag)) {
+      if (e.src) {
+        srcs[e.src] = true;
+      }
+    }
+  }
+  return srcs;
+}
+
+let main = document.getElementById('main');
+let deps = document.getElementById('deps');
+main.onsubmit = () => {
+  question_preview.innerHTML = marked(question.value);
+  answer_preview.innerHTML = marked(answer.value);
+  let srcs =
+    Object.keys(
+      Object.assign(getSrcs(question_preview), getSrcs(answer_preview)));
+  deps.value = JSON.stringify(srcs);
+}
