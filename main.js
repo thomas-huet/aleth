@@ -97,6 +97,7 @@ async function showCard(card_id, old_card) {
           body: JSON.stringify(auth),
         });
       });
+      showCard();
     }
   };
   delete_.style.display = 'block';
