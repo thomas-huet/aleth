@@ -342,10 +342,6 @@ async function synchronize(auth) { try {
     if (id === 's') {
       continue;
     }
-    if (cards[id].sync_id) {
-      cards[id].s = cards[id].sync_id;
-    }
-    delete cards[id].sync_id;
     if (cards[id].to_delete) {
       if (synced[id]) {
         synced_changed = true;
@@ -401,10 +397,6 @@ async function synchronize(auth) { try {
     synced_updated();
   }
   for (let id in synced) {
-    if (synced[id].sync_id) {
-      synced[id].s = synced[id].sync_id;
-    }
-    delete synced[id].sync_id;
     if (synced[id].d <= now() + DURATION_TO_CACHE) {
       if (!cards[id] || synced[id].e > cards[id].e) {
         cards_changed = true;
