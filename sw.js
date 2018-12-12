@@ -175,7 +175,7 @@ async function deleteCard(id) {
   }
   await update(cache, 'cards.json', cards);
   await cache.delete('card/' + id);
-  return Response.redirect('.');
+  return new Response();
 }
 
 async function reset() {
