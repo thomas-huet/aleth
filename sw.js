@@ -206,7 +206,7 @@ self.addEventListener('fetch', event => {
     ));
   } else if (event.request.method === 'POST' &&
              event.request.url.match(/\/sync$/)) {
-    event.respondWith(event.request.json().then(synchronize));
+    event.respondWith(event.request.json().then(synchronizeWhenReady));
   } else if (event.request.method === 'DELETE' &&
              event.request.url.match(/\/card\/[0-9]+$/)) {
     let id = event.request.url.match(/\/card\/([0-9]+)$/)[1];
@@ -317,7 +317,40 @@ async function updateFile(auth, id, name, content) {
   return id;
 }
 
-async function synchronize(auth) { try {
+function make_promise() {
+  let x = {};
+  x.promise = new Promise((resolve, reject) => {
+    x.resolve = resolve;
+    x.reject = reject;
+  });
+  return x;
+}
+
+// synchronization states:
+// 0 : idle, ready to synchronize
+// 1 : synchronizing
+// 2 : synchronizing with another synchronization waiting after it
+var synchronization_state = 0;
+async function synchronizeWhenReady(auth) {
+  if (synchronization_state === 0) {
+    while (true) {
+      synchronization_state = 1;
+      try {
+        await synchronize(auth);
+      } catch (err) {
+        console.error(err);
+      }
+      if (synchronization_state === 1) {
+        synchronization_state = 0;
+        return new Response();
+      }
+    }
+  }
+  synchronization_state = 2;
+  return new Response();
+}
+
+async function synchronize(auth) {
   console.log('synchronizing');
   let cards_id = await idByName(auth, 'cards.json');
   let synced = {};
@@ -333,11 +366,9 @@ async function synchronize(auth) { try {
   let synced_changed = false;
   let cards_changed = false;
   let todo_before_cards_update = [];
-  let cards_updated;
-  let cards_update = new Promise(resolve => { cards_updated = resolve; });
+  let cards_update = make_promise();
   let todo_before_synced_update = [];
-  let synced_updated;
-  let synced_update = new Promise(resolve => { synced_updated = resolve; });
+  let synced_update = make_promise();
   for (let id in cards) {
     if (id === 's') {
       continue;
@@ -347,7 +378,7 @@ async function synchronize(auth) { try {
         synced_changed = true;
         cards_changed = true;
         delete synced[id];
-        synced_update.then(() => {
+        synced_update.promise.then(() => {
           deleteFile(auth, cards[id].s, id);
         });
       }
@@ -357,7 +388,7 @@ async function synchronize(auth) { try {
     if (!synced[id]) {
       if (cards.s >= id) {
         delete cards[id];
-        cards_update.then(async () => {
+        cards_update.promise.then(async () => {
           let data = await get(cache, 'card/' + id);
           if (data.d) {
             let dependencies = await get(cache, 'dependencies.json');
@@ -394,7 +425,7 @@ async function synchronize(auth) { try {
   if (synced_changed) {
     await Promise.all(todo_before_synced_update);
     await updateFile(auth, cards_id, 'cards.json', synced);
-    synced_updated();
+    synced_update.resolve();
   }
   for (let id in synced) {
     if (synced[id].d <= now() + DURATION_TO_CACHE) {
@@ -427,7 +458,7 @@ async function synchronize(auth) { try {
       }
     } else if (cards[id]) {
       delete cards[id];
-      cards_update.then(async () => {
+      cards_update.promise.then(async () => {
         let data = await get(cache, 'card/' + id);
         if (data.d) {
           let dependencies = await get(cache, 'dependencies.json');
@@ -443,7 +474,7 @@ async function synchronize(auth) { try {
     cards.s = now();
     await Promise.all(todo_before_cards_update);
     await update(cache, 'cards.json', cards);
-    cards_updated();
+    cards_update.resolve();
   }
   if (cards_changed) {
     let channel = new BroadcastChannel('sync');
@@ -451,7 +482,4 @@ async function synchronize(auth) { try {
   }
   console.log('synchronization done');
   console.log('cards = ', cards);
-  return new Response();
-} catch (err) {
-  console.error(err);
-}}
+}
