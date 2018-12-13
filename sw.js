@@ -218,25 +218,25 @@ self.addEventListener('fetch', event => {
 
 // Time before retrying a request if throttled
 const GAPI_DELAY = 100 * 1000; // 100s
+const RETRIES = 3; // number of retries when a request is throttled
 
 async function driveRequest(auth, uri, options) {
   options = options || {};
-  let response = await fetch(uri, Object.assign({
-      headers: { Authorization: 'Bearer ' + auth.access_token },
-    }, options));
-  if (response.ok) {
-    return response.json();
-  }
-  if (response.status === 403) {
-    console.warn(uri + ' 403');
-    await new Promise(function(resolve) {
-      setTimeout(resolve, GAPI_DELAY);
-    });
+  let response;
+  for (let i = 0; i < RETRIES; i++) {
     response = await fetch(uri, Object.assign({
-        headers: { Authorization: 'Bearer ' + auth.access_token },
+	headers: { Authorization: 'Bearer ' + auth.access_token },
       }, options));
     if (response.ok) {
       return response.json();
+    }
+    if (response.status === 403) {
+      console.warn(uri + ' 403');
+      await new Promise(function(resolve) {
+	setTimeout(resolve, GAPI_DELAY);
+      });
+    } else {
+      break;
     }
   }
   throw 'Error fetching "' + uri + '": ' + await response.text();
