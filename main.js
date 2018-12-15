@@ -83,9 +83,7 @@ async function showCard(card_id, old_card) {
   main.style.display = 'block';
   edit.onclick = () => {
     location.href =
-      'edit.html?id=' + id +
-      '&question=' + encodeURIComponent(card.q) +
-      '&answer=' + encodeURIComponent(card.a);
+      'edit.html?id=' + id;
   };
   edit.style.display = 'block';
   delete_.onclick = async () => {
