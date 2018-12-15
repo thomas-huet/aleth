@@ -5,14 +5,19 @@ marked.setOptions({
   headerIds: false,
 });
 
-let id = document.getElementById('id');
+let id_field = document.getElementById('id');
 let question = document.getElementById('question');
 let answer = document.getElementById('answer');
 if (document.location.search) {
   let search = (new URL(document.location)).searchParams;
-  id.value = search.get('id');
-  question.value = search.get('question');
-  answer.value = search.get('answer');
+  let id = search.get('id');
+  if (/^[0-9]+$/.test(id)) {
+    fetch('card/' + id).then(response => response.json()).then(card => {
+      id_field.value = id;
+      question.value = card.q;
+      answer.value = card.a;
+    });
+  }
 }
 
 let edit_question = document.getElementById('edit-question');
