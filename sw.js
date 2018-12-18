@@ -436,7 +436,7 @@ async function synchronize(auth) {
           .then(async data => {
             let dependencies = await get(cache, 'dependencies.json');
             if (data.d) {
-              deps = [];
+              let deps = [];
               for (let dep of data.d) {
                 if (await addDependency(dependencies, dep, cache)) {
                   deps.push(dep);
