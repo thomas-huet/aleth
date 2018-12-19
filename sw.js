@@ -148,7 +148,7 @@ async function review(id, time, correct) {
     card.i = K * (card.i + (time - card.d));
     card.d = now() + card.i;
   } else {
-    card.i = Math.max(Math.floor(card.i) / K, DELAY_MIN);
+    card.i = Math.max(Math.floor(card.i) / K / K, DELAY_MIN);
     card.d = now() + DELAY_MIN;
   }
   card.r = now();

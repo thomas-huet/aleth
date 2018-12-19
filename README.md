@@ -25,5 +25,5 @@ Synchronization uses the [Application Data folder](https://developers.google.com
 
 ## Spaced repetition algorithm
 
-If you know the answer, the interval is multiplied by `K`, if not it is divided by `K`.
+If you know the answer, the interval is multiplied by `K`, if not it is divided by `K²`.
 Currently `K = 2`.
