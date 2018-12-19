@@ -359,10 +359,8 @@ async function synchronize(auth) {
   } else {
     cards_id = await createFile(auth, 'cards.json', {});
   }
-  console.log('synced = ', synced);
   let cache = await caches.open(V);
   let cards = await get(cache, 'cards.json');
-  console.log('cards = ', cards);
   let synced_changed = false;
   let cards_changed = false;
   let todo_before_cards_update = [];
@@ -481,5 +479,4 @@ async function synchronize(auth) {
     channel.postMessage('change');
   }
   console.log('synchronization done');
-  console.log('cards = ', cards);
 }

@@ -68,6 +68,7 @@ async function showCard(card_id, old_card) {
   }
   let id = due[Math.floor(Math.random() * due.length)];
   let card = await (await fetch('card/' + id)).json();
+  console.log('showing card ' + id);
   document.getElementById('question').innerHTML = marked(card.q);
   document.getElementById('answer').innerHTML = marked(card.a);
   let back = document.getElementById('back');

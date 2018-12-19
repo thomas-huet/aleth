@@ -23,7 +23,7 @@ var ready = new Promise(function(resolve, reject) {
 
 function updateButtons(signed_in) {
   if (signed_in) {
-    console.log('Signed in');
+    console.log('signed in');
     document.getElementById('drive-in').style.display = 'none';
     let drive_out = document.getElementById('drive-out');
     drive_out.style.display = 'block';
@@ -31,6 +31,7 @@ function updateButtons(signed_in) {
       gapi.auth2.getAuthInstance().signOut();
     };
   } else {
+    console.log('signed out');
     document.getElementById('drive-out').style.display = 'none';
     let drive_in = document.getElementById('drive-in');
     drive_in.style.display = 'block';
