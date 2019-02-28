@@ -41,20 +41,21 @@ async function showCard(card_id, old_card) {
       cards[card_id].e === old_card.e) {
     return;
   }
-  let due = [];
-  for (let id in cards) {
-    if (id === 's') {
+  let id = 0;
+  for (let c in cards) {
+    if (c === 's') {
       continue;
     }
-    if (cards[id].d <= t && !cards[id].to_delete) {
-      due.push(id);
+    if (cards[c].d <= t && !cards[c].to_delete &&
+        (id === 0 || cards[c].i > cards[id].i)) {
+      id = c;
     }
   }
   let main = document.getElementById('main');
   let placeholder = document.getElementById('placeholder');
   let edit = document.getElementById('edit');
   let delete_ = document.getElementById('delete');
-  if (due.length === 0) {
+  if (id === 0) {
     main.style.display = 'none';
     placeholder.style.display = 'block';
     edit.style.display = 'none';
@@ -66,7 +67,6 @@ async function showCard(card_id, old_card) {
     };
     return;
   }
-  let id = due[Math.floor(Math.random() * due.length)];
   let card = await (await fetch('card/' + id)).json();
   console.log('showing card ' + id);
   document.getElementById('question').innerHTML = marked(card.q);
